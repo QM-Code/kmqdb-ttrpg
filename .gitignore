@@ -1,0 +1,15 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Generated image downloads can become large; keep inventories in git instead.
+paizo_images/
+data/images/
+downloads/
+
+# Local scratch/output files.
+*.log
+tmp/
