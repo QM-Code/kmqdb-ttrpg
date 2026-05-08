@@ -1,59 +1,85 @@
 # KMQDB TTRPG
 
-This is a temporary repo until we figure out how to integrate items from kboecker.
+KMQDB TTRPG is a working repository for collecting, organizing, and documenting
+tabletop roleplaying game product metadata and image assets.
 
-## Local Sync
+The current project focus is a Paizo Store image inventory for digital products
+across these game lines:
 
-This local checkout is managed with `kbuild`. The GitHub connection is
-configured in `.kbuild.json`.
+- Pathfinder 1E
+- Pathfinder 2E
+- Pathfinder 2E Remaster
+- Starfinder 1E
+- Starfinder 2E
 
-Use `kbuild` from the repository root:
+## Current Contents
 
-```bash
-kbuild --git-sync "<message>"
+```text
+.
+├── INVENTORY.md
+├── data/
+│   ├── inventory/
+│   │   ├── paizo_digital_image_inventory.csv
+│   │   └── paizo_digital_image_inventory_sample.csv
+│   └── raw-paizo-pages/
+│       ├── pf2.html
+│       ├── sample_product.html
+│       └── starfinder.html
+└── scripts/
+    └── paizo_image_inventory.py
 ```
 
-Do not run `kbuild --git-sync` from a nested directory. It only syncs when the
-current directory is the git worktree root.
+## Inventory Data
 
-## kboecker Agent Connection
+The main inventory file is:
 
-The agent will run Codex on macOS and does not need `kbuild`. It only needs Git
-and write access to `QM-Code/kmqdb-ttrpg`.
-
-Use SSH if the Mac has a GitHub SSH key configured:
-
-```bash
-git clone git@github.com:QM-Code/kmqdb-ttrpg.git
-cd kmqdb-ttrpg
+```text
+data/inventory/paizo_digital_image_inventory.csv
 ```
 
-Use HTTPS if SSH is not configured:
+Each row represents one product image and includes:
 
-```bash
-git clone https://github.com/QM-Code/kmqdb-ttrpg.git
-cd kmqdb-ttrpg
+- game/category
+- product brand
+- product ID
+- SKU
+- product title
+- product page URL
+- image number
+- thumbnail URL
+- full-size image URL
+
+See `INVENTORY.md` for a summary of image counts and estimated download size by
+game line.
+
+## Script
+
+The inventory was generated with:
+
+```sh
+python3 scripts/paizo_image_inventory.py --out data/inventory/paizo_digital_image_inventory.csv
 ```
 
-Before starting work:
+To create a small test inventory:
 
-```bash
-git status
-git pull --ff-only origin main
+```sh
+python3 scripts/paizo_image_inventory.py --limit-products 5 --out data/inventory/paizo_digital_image_inventory_sample.csv
 ```
 
-After making changes:
+To download image files locally, use:
 
-```bash
-git status
-git add -A
-git commit -m "<message>"
-git push origin main
+```sh
+python3 scripts/paizo_image_inventory.py --download
 ```
 
-If Git identity is not configured on the Mac yet:
+Downloaded images are intentionally ignored by Git because they can become
+large. The CSV inventory is the source of truth for image URLs.
 
-```bash
-git config --global user.name "kboecker"
-git config --global user.email "<github-email>"
-```
+## Notes
+
+- The repository currently stores image URLs and supporting metadata, not the
+  downloaded image binaries.
+- Digital products are identified with conservative title and URL markers such
+  as `PDF`, `Foundry VTT`, `soundtrack`, `download`, and `code`.
+- Raw HTML files under `data/raw-paizo-pages/` are retained as inspection
+  samples from the original scrape.
