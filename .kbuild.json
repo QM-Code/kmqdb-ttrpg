@@ -1,0 +1,10 @@
+{
+  "project": {
+    "title": "KMQDB TTRPG",
+    "id": "kmqdb_ttrpg"
+  },
+  "git": {
+    "url": "https://github.com/QM-Code/kmqdb-ttrpg",
+    "auth": "git@github.com:QM-Code/kmqdb-ttrpg.git"
+  }
+}
