@@ -77,6 +77,8 @@ large. The CSV inventory is the source of truth for image URLs.
 
 ## Notes
 
+- Repository notes and inventory files may change as the integration shape
+  becomes clearer.
 - The repository currently stores image URLs and supporting metadata, not the
   downloaded image binaries.
 - Digital products are identified with conservative title and URL markers such
