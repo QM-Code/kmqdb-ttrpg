@@ -66,6 +66,19 @@ To create a small test inventory:
 python3 scripts/paizo_image_inventory.py --limit-products 5 --out data/inventory/paizo_digital_image_inventory_sample.csv
 ```
 
+To inventory images from a KMQDB `sources` API table, such as Pathfinder 1E
+source records that already have product URLs:
+
+```sh
+python3 scripts/paizo_image_inventory.py \
+  --source-api-url https://kmqdb.com/api/ttrpg/pf1e/sqlite/table/sources \
+  --verify-image-urls \
+  --out data/inventory/pf1e_source_image_inventory.csv
+```
+
+`--verify-image-urls` keeps only rows whose thumbnail and full-size URLs return
+image content.
+
 To download image files locally, use:
 
 ```sh
