@@ -46,14 +46,28 @@ python3 scripts/paizo_image_inventory.py \
   --out data/inventory/pf1e_source_image_inventory.csv
 ```
 
-A sample verification run against the first three PF1E source URLs produced
-three verified image rows:
+A full PF1E source scrape found `785` source rows with URLs and produced `770`
+verified image rows:
 
-| Source ID | Name | SKU | Image Status |
-| --- | --- | --- | --- |
-| `ap-rotr-1` | Rise of the Runelords #1: Burnt Offerings | `PZO9001E` | verified |
-| `ap-rotr-2` | Rise of the Runelords #2: The Skinsaw Murders | `PZO9002E` | verified |
-| `ap-rotr-3` | Rise of the Runelords #3: The Hook Mountain Massacre | `PZO9003E` | verified |
+| Output | Count | Local Size |
+| --- | ---: | ---: |
+| CSV image rows | 770 | 310.3 KB |
+| Thumbnail files | 770 | 40 MB |
+| Full-size files | 770 | 136 MB |
+| Combined image files | 1,540 | 175 MB |
+
+The source-derived inventory CSV is:
+
+```text
+data/inventory/pf1e_source_image_inventory.csv
+```
+
+The downloaded image binaries are local-only and ignored by Git:
+
+```text
+data/images/pf1e-source/thumbnails/
+data/images/pf1e-source/full-size/
+```
 
 ## Notes
 
