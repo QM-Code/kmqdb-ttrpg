@@ -18,9 +18,48 @@ Generated from `data/inventory/paizo_digital_image_inventory.csv`. The project c
 - Full-size files: `387` (381.4 MB)
 - Combined estimated image storage: `396.3 MB`
 
+## Source URL Image Lookup
+
+The KMQDB Pathfinder 1E database exposes source/product records through:
+
+```text
+https://kmqdb.com/api/ttrpg/pf1e/sqlite/table/sources
+```
+
+Rows in that table include Paizo source URLs and existing image metadata in
+these columns:
+
+```text
+id, type, name, abbr, parent, seq, lmin, lmax, date, sku, isbn, pages, url, description, image, credits, toc
+```
+
+For source rows that have a `url`, the inventory script can now fetch the
+source product page, extract thumbnail and full-size CDN image URLs, and verify
+that those URLs return image content before writing them to an inventory CSV.
+
+Example command:
+
+```sh
+python3 scripts/paizo_image_inventory.py \
+  --source-api-url https://kmqdb.com/api/ttrpg/pf1e/sqlite/table/sources \
+  --verify-image-urls \
+  --out data/inventory/pf1e_source_image_inventory.csv
+```
+
+A sample verification run against the first three PF1E source URLs produced
+three verified image rows:
+
+| Source ID | Name | SKU | Image Status |
+| --- | --- | --- | --- |
+| `ap-rotr-1` | Rise of the Runelords #1: Burnt Offerings | `PZO9001E` | verified |
+| `ap-rotr-2` | Rise of the Runelords #2: The Skinsaw Murders | `PZO9002E` | verified |
+| `ap-rotr-3` | Rise of the Runelords #3: The Hook Mountain Massacre | `PZO9003E` | verified |
+
 ## Notes
 
 - `Image Records` means one product image row in the CSV. A product can have more than one image.
 - `Thumbnail Files` are the `thumbnail_url` entries in the CSV.
 - `Full-Size Files` are the `full_size_url` entries in the CSV.
+- `--verify-image-urls` checks both thumbnail and full-size image URLs and skips
+  rows where either URL is missing or does not return image content.
 - Sizes may change if Paizo updates or recompresses CDN assets.
