@@ -20,10 +20,11 @@ Generated from `data/inventory/paizo_digital_image_inventory.csv`. The project c
 
 ## Source URL Image Lookup
 
-The KMQDB Pathfinder 1E database exposes source/product records through:
+The KMQDB Pathfinder databases expose source/product records through:
 
 ```text
 https://kmqdb.com/api/ttrpg/pf1e/sqlite/table/sources
+https://kmqdb.com/api/ttrpg/pf2e/sqlite/table/sources
 ```
 
 Rows in that table include Paizo source URLs and existing image metadata in
@@ -44,6 +45,17 @@ python3 scripts/paizo_image_inventory.py \
   --source-api-url https://kmqdb.com/api/ttrpg/pf1e/sqlite/table/sources \
   --verify-image-urls \
   --out data/inventory/pf1e_source_image_inventory.csv
+```
+
+Use `--source-category` and `--source-brand` when scraping another ruleset:
+
+```sh
+python3 scripts/paizo_image_inventory.py \
+  --source-api-url https://kmqdb.com/api/ttrpg/pf2e/sqlite/table/sources \
+  --source-category "Pathfinder 2E" \
+  --source-brand "Pathfinder 2E" \
+  --verify-image-urls \
+  --out data/inventory/pf2e_source_image_inventory.csv
 ```
 
 A full PF1E source scrape found `785` source rows with URLs and produced `770`
@@ -67,6 +79,29 @@ The downloaded image binaries are local-only and ignored by Git:
 ```text
 data/images/pf1e-source/thumbnails/
 data/images/pf1e-source/full-size/
+```
+
+A full PF2E source scrape found `347` source rows with URLs and produced `457`
+verified image rows:
+
+| Output | Count | Local Size |
+| --- | ---: | ---: |
+| CSV image rows | 457 | 184.1 KB |
+| Thumbnail files | 457 | 25 MB |
+| Full-size files | 457 | 234 MB |
+| Combined image files | 914 | 259 MB |
+
+The PF2E source-derived inventory CSV is:
+
+```text
+data/inventory/pf2e_source_image_inventory.csv
+```
+
+The downloaded PF2E image binaries are local-only and ignored by Git:
+
+```text
+data/images/pf2e-source/thumbnails/
+data/images/pf2e-source/full-size/
 ```
 
 ## Notes
