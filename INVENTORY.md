@@ -26,6 +26,7 @@ The KMQDB Pathfinder and Starfinder databases expose source/product records thro
 https://kmqdb.com/api/ttrpg/pf1e/sqlite/table/sources
 https://kmqdb.com/api/ttrpg/pf2e/sqlite/table/sources
 https://kmqdb.com/api/ttrpg/sf1e/sqlite/table/sources
+https://kmqdb.com/api/ttrpg/sf2e/sqlite/table/sources
 ```
 
 Rows in that table include Paizo source URLs and existing image metadata in
@@ -127,6 +128,29 @@ The downloaded SF1E image binaries are local-only and ignored by Git:
 ```text
 data/images/sf1e-source/thumbnails/
 data/images/sf1e-source/full-size/
+```
+
+A full SF2E source scrape found `47` source rows with URLs and produced `59`
+verified image rows:
+
+| Output | Count | Local Size |
+| --- | ---: | ---: |
+| CSV image rows | 59 | 23.7 KB |
+| Thumbnail files | 59 | 2.9 MB |
+| Full-size files | 59 | 35 MB |
+| Combined image files | 118 | 37 MB |
+
+The SF2E source-derived inventory CSV is:
+
+```text
+data/inventory/sf2e_source_image_inventory.csv
+```
+
+The downloaded SF2E image binaries are local-only and ignored by Git:
+
+```text
+data/images/sf2e-source/thumbnails/
+data/images/sf2e-source/full-size/
 ```
 
 ## Notes
