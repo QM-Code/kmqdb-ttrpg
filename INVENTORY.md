@@ -25,6 +25,7 @@ The KMQDB Pathfinder and Starfinder databases expose source/product records thro
 ```text
 https://kmqdb.com/api/ttrpg/pf1e/sqlite/table/sources
 https://kmqdb.com/api/ttrpg/pf2e/sqlite/table/sources
+https://kmqdb.com/api/ttrpg/pf2er/sqlite/table/sources
 https://kmqdb.com/api/ttrpg/sf1e/sqlite/table/sources
 https://kmqdb.com/api/ttrpg/sf2e/sqlite/table/sources
 ```
@@ -104,6 +105,29 @@ The downloaded PF2E image binaries are local-only and ignored by Git:
 ```text
 data/images/pf2e-source/thumbnails/
 data/images/pf2e-source/full-size/
+```
+
+A full PF2E Remaster source scrape found `344` source rows with URLs and
+produced `450` verified image rows:
+
+| Output | Count | Local Size |
+| --- | ---: | ---: |
+| CSV image rows | 450 | 189.1 KB |
+| Thumbnail files | 450 | 25 MB |
+| Full-size files | 450 | 230 MB |
+| Combined image files | 900 | 255 MB |
+
+The PF2E Remaster source-derived inventory CSV is:
+
+```text
+data/inventory/pf2er_source_image_inventory.csv
+```
+
+The downloaded PF2E Remaster image binaries are local-only and ignored by Git:
+
+```text
+data/images/pf2er-source/thumbnails/
+data/images/pf2er-source/full-size/
 ```
 
 A full SF1E source scrape found `283` source rows with URLs and produced `284`
