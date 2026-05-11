@@ -17,6 +17,8 @@ across these game lines:
 ```text
 .
 ├── INVENTORY.md
+├── docs/
+│   └── IMAGE_GENERATION_WORKFLOW.md
 ├── data/
 │   ├── inventory/
 │   │   ├── paizo_digital_image_inventory.csv
@@ -94,6 +96,7 @@ large. The CSV inventory is the source of truth for image URLs.
   becomes clearer.
 - The repository currently stores image URLs and supporting metadata, not the
   downloaded image binaries.
+- Generated creature-art workflow notes live in `docs/IMAGE_GENERATION_WORKFLOW.md`.
 - Digital products are identified with conservative title and URL markers such
   as `PDF`, `Foundry VTT`, `soundtrack`, `download`, and `code`.
 - Raw HTML files under `data/raw-paizo-pages/` are retained as inspection
