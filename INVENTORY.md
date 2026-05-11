@@ -20,11 +20,12 @@ Generated from `data/inventory/paizo_digital_image_inventory.csv`. The project c
 
 ## Source URL Image Lookup
 
-The KMQDB Pathfinder databases expose source/product records through:
+The KMQDB Pathfinder and Starfinder databases expose source/product records through:
 
 ```text
 https://kmqdb.com/api/ttrpg/pf1e/sqlite/table/sources
 https://kmqdb.com/api/ttrpg/pf2e/sqlite/table/sources
+https://kmqdb.com/api/ttrpg/sf1e/sqlite/table/sources
 ```
 
 Rows in that table include Paizo source URLs and existing image metadata in
@@ -104,11 +105,37 @@ data/images/pf2e-source/thumbnails/
 data/images/pf2e-source/full-size/
 ```
 
+A full SF1E source scrape found `283` source rows with URLs and produced `284`
+verified image rows. Those rows point to `271` unique thumbnail URLs and `271`
+unique full-size URLs:
+
+| Output | Count | Local Size |
+| --- | ---: | ---: |
+| CSV image rows | 284 | 111.5 KB |
+| Unique thumbnail files | 271 | 17 MB |
+| Unique full-size files | 271 | 149 MB |
+| Combined unique image files | 542 | 166 MB |
+
+The SF1E source-derived inventory CSV is:
+
+```text
+data/inventory/sf1e_source_image_inventory.csv
+```
+
+The downloaded SF1E image binaries are local-only and ignored by Git:
+
+```text
+data/images/sf1e-source/thumbnails/
+data/images/sf1e-source/full-size/
+```
+
 ## Notes
 
 - `Image Records` means one product image row in the CSV. A product can have more than one image.
 - `Thumbnail Files` are the `thumbnail_url` entries in the CSV.
 - `Full-Size Files` are the `full_size_url` entries in the CSV.
+- Some source rows can share the same image URL; file counts can therefore be
+  lower than CSV image rows when duplicate assets are reused.
 - `--verify-image-urls` checks both thumbnail and full-size image URLs and skips
   rows where either URL is missing or does not return image content.
 - Sizes may change if Paizo updates or recompresses CDN assets.
