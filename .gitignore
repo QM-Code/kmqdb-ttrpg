@@ -8,7 +8,6 @@ venv/
 # Generated image downloads can become large; keep inventories in git instead.
 paizo_images/
 data/images/
-assets/
 downloads/
 
 # Binary artifacts should stay out of the repository.

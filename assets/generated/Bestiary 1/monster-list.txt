@@ -1,0 +1,363 @@
+Bestiary 1 Monster List
+Source: https://anyflip.com/kpthp/yliz/basic
+Extracted from AnyFlip alphabetical listing pages.
+Entries: 321
+
+Aasimar — 7
+Aboleth — 8
+Air elemental — 120–121
+Air mephit — 202
+Animated object — 14
+Ankheg — 15
+Ankylosaurus (dinosaur) — 83
+Army ant swarm (ant) — 16
+Assassin vine — 22
+Astral deva (angel) — 10
+Aurochs (herd animal) — 174
+Babau (demon) — 57
+Balor (demon) — 58
+Barbed devil — 72
+Barghest — 27
+Basidirond — 28
+Basilisk — 29
+Bat (familiar) — 131
+Bat swarm — 30
+Bearded devil — 73
+Bebelith — 32
+Behir — 34
+Bison (herd animal) — 174
+Black dragon — 92–93
+Black pudding — 35
+Blue dragon — 94–95
+Boar — 36
+Boggard — 37
+Bone devil — 74
+Brachiosaurus (dinosaur) — 83
+Bralani (azata) — 24
+Brass dragon — 102–103
+Bronze dragon — 104–105
+Bugbear — 38
+Bulette — 39
+Cat (familiar) — 131
+Cauchemar (nightmare) — 216
+Cave fisher — 41
+Centaur — 42
+Centipede swarm — 43
+Cheetah (cat) — 40
+Chimera — 44
+Choker — 45
+Chuul — 46
+Clay golem — 159
+Cloaker — 47
+Cloud giant — 147
+Cockatrice — 48
+Constrictor snake — 255
+Copper dragon — 106–107
+Couatl — 49
+Crab swarm — 50
+Crag linnorm — 190
+Crocodile — 51
+Cyclops — 52
+Dark creeper — 53
+Dark naga — 211
+Dark stalker — 54
+Darkmantle — 55
+Deinonychus (dinosaur) — 84
+Derro — 70
+Devourer — 82
+Dire ape — 17
+Dire bat — 30
+Dire bear — 31
+Dire boar — 36
+Dire crocodile — 51
+Dire hyena — 179
+Dire lion — 193
+Dire rat — 232
+Dire shark — 247
+Dire tiger — 265
+Dire wolf — 278
+Dire wolverine — 279
+Djinni (genie) — 139
+Dog — 87
+Dolphin — 88
+Doppelganger — 89
+Dracolisk (half-dragon) — 170
+Dragon turtle — 112
+Dretch (demon) — 60
+Drider — 113
+Drow — 114–115
+Drow noble — 115
+Dryad — 116
+Duergar — 117
+Dungeon (high-level) — 325
+Dungeon (low-level) — 324
+Dungeon (mid-level) — 324
+Dust mephit — 202
+Eagle — 118
+Earth elemental — 122–123
+Earth mephit — 202
+Efreeti (genie) — 140
+Elasmosaurus (dinosaur) — 84
+Electric eel — 119
+Elephant — 128
+Erinyes (devil) — 75
+Ettercap — 129
+Ettin — 130
+Fire beetle — 33
+Fire elemental — 124–125
+Fire giant — 148
+Fire mephit — 202
+Flesh golem — 160
+Forest (temperate) — 325
+Froghemoth — 136
+Frost giant — 149
+Gargoyle — 137
+Gelatinous cube — 138
+Ghaele (azata) — 25
+Ghost — 144–145
+Ghoul — 146
+Giant ant — 16
+Giant centipede — 43
+Giant crab — 50
+Giant eagle — 118
+Giant flytrap — 134
+Giant frilled lizard — 194
+Giant frog — 135
+Giant leech — 187
+Giant mantis — 200
+Giant moray eel — 119
+Giant octopus — 219
+Giant scorpion — 242
+Giant slug — 254
+Giant spider — 258
+Giant squid — 259
+Giant stag beetle — 33
+Giant wasp — 275
+Gibbering mouther — 153
+Girallon — 154
+Glabrezu (demon) — 61
+Gnoll — 155
+Goblin — 156
+Goblin dog — 157
+Gold dragon — 108–109
+Gorgon — 165
+Gorilla (ape) — 17
+Gray ooze — 166
+Greater barghest — 27
+Greater shadow — 245
+Green dragon — 96–97
+Green hag — 167
+Griffon — 168
+Grizzly bear — 31
+Guardian naga — 212
+Half-celestial (unicorn) — 169
+Half-dragon (dracolisk) — 170
+Half-fiend (minotaur) — 171
+Harpy — 172
+Hawk (familiar) — 131
+Hell hound — 173
+Hezrou — 62
+Hill giant — 150
+Hobgoblin — 175
+Homunculus — 176
+Horned devil — 76
+Horse — 177
+Hound archon — 19
+Hydra — 178
+Hyena — 179
+Ice devil — 77
+Ice golem — 161
+Ice linnorm — 191
+Ice mephit — 202
+Imp (devil) — 78
+Intellect devourer — 180
+Invisible stalker — 181
+Iron cobra — 182
+Iron golem — 162
+Janni (genie) — 141
+Jungle — 325
+Kobold — 183
+Kraken — 184
+Kyton — 185
+Lamia — 186
+Lantern archon — 20
+Leech swarm — 187
+Lemure (devil) — 79
+Leopard (cat) — 40
+Lich — 188–189
+Lillend (azata) — 26
+Lion — 193
+Lizard (familiar) — 131
+Lizardfolk — 195
+Magma mephit — 202
+Manticore — 199
+Marid (genie) — 142
+Marilith (demon) — 63
+Mastodon (elephant) — 128
+Medusa — 201
+Merfolk — 204
+Mimic — 205
+Minotaur — 206
+Mite — 207
+Mohrg — 208
+Monitor lizard — 194
+Monkey (familiar) — 132
+Morlock — 209
+Mountain — 325
+Mummy — 210
+Nabasu (demon) — 64
+Nalfeshnee (demon) — 65
+Neothelid — 214
+Nessian warhound (hell hound) — 173
+Night hag — 215
+Nightmare — 216
+Nymph — 217
+Ocean — 326
+Ochre jelly — 218
+Octopus — 219
+Ogre — 220
+Ogre mage (oni) — 221
+Ooze mephit — 203
+Orc — 222
+Orca (dolphin) — 88
+Otyugh — 223
+Owl (familiar) — 132
+Owlbear — 224
+Pegasus — 225
+Phase spider — 226
+Phoenix — 227
+Pit fiend (devil) — 80–81
+Pixie — 228
+Planetar (angel) — 11
+Poison frog — 135
+Pony (horse) — 177
+Pseudodragon — 229
+Pteranodon (dinosaur) — 85
+Purple worm — 230
+Quasit (demon) — 66
+Rakshasa — 231
+Rat (familiar) — 132
+Rat swarm — 232
+Raven (familiar) — 133
+Red dragon — 98–99
+Region Page Region Page Desert — 324
+Remorhaz — 233
+Retriever — 234
+Rhinoceros — 235
+Riding dog — 87
+Roc — 236
+Roper — 237
+Ruined City — 326
+Rust monster — 238
+Sahuagin — 239
+Salamander — 240
+Salt mephit — 203
+Satyr — 241
+Savannah (warm plains) — 326
+Sea hag — 243
+Sea serpent — 244
+Shadow — 245
+Shadow demon — 67
+Shaitan (genie) — 143
+Shambling mound 24 — 6
+Shark 24 — 7
+Shocker lizard 24 — 8
+Shoggoth 24 — 9
+Silver dragon — 110–111
+Skeletal champion — 252
+Skeleton — 250–251
+Skum — 253
+Solar (angel) — 12
+Spectre — 256
+Sphinx — 257
+Spider swarm — 258
+Spirit naga — 213
+Squid — 259
+Steam mephit — 203
+Stegosaurus (dinosaur) — 85
+Stirge — 260
+Stone giant — 151
+Stone golem — 163
+Storm giant — 152
+Succubus (demon) — 68
+Svirfneblin — 261
+Swamp — 326
+Tarn linnorm — 192
+Tarrasque — 262
+Tengu — 263
+Tiefling — 264
+Tiger — 265
+Toad (familiar) — 133
+Treant — 266
+Triceratops (dinosaur) — 86
+Troglodyte — 267
+Troll — 268
+Trumpet archon — 21
+Tyrannosaurus (dinosaur) — 86
+Underground — 327
+Unicorn — 269
+Urban (dangerous city) — 327
+Vampire — 270–271
+Vargouille — 272
+Vegepygmy — 273
+Venomous snake — 255
+Violet fungus — 274
+Viper (familiar) — 133
+Vrock (demon) — 69
+Wasp swarm — 275
+Water elemental — 126–127
+Water mephit — 203
+Weasel (familiar) — 133
+Wererat (lycanthrope) — 197
+Werewolf (lycanthrope) — 198
+White dragon — 100–101
+Wight — 276
+Will-o’-wisp — 277
+Winter wolf (worg) — 280
+Wolf — 278
+Wolverine — 279
+Wood golem — 164
+Woolly rhinoceros — 235
+Worg — 280
+Wraith — 281
+Wyvern — 282
+Xill — 283
+Xorn — 284
+Yellow musk creeper — 285
+
+## Image Generation Status
+
+Status key: `pending`, `references saved`, `in progress`, `images complete`, `evaluation complete`, `manual review`.
+
+- [x] Aasimar — 7 — evaluation complete — directory: `aasimar`
+- [x] Aboleth — 8 — evaluation complete — directory: `aboleth`
+- [x] Air elemental — 120–121 — evaluation complete — directory: `air-elemental`
+- [x] Air mephit — 202 — evaluation complete — directory: `air-mephit`
+- [x] Animated object — 14 — evaluation complete — directory: `animated-object`
+- [ ] Ankou — Bestiary 4 page 10 source, legacy Bestiary 1 directory — images complete, parent evaluation not present — directory: `ankou`
+- [x] Ankheg — 15 — evaluation complete — directory: `ankheg`
+- [x] Ankylosaurus (dinosaur) — 83 — evaluation complete — directory: `ankylosaurus`
+- [x] Army ant swarm (ant) — 16 — evaluation complete — directory: `army-ant-swarm`
+- [x] Assassin vine — 22 — evaluation complete — directory: `assassin-vine`
+- [x] Astral deva (angel) — 10 — evaluation complete — directory: `astral-deva`
+- [x] Aurochs (herd animal) — 174 — evaluation complete — directory: `aurochs`
+- [x] Babau (demon) — 57 — evaluation complete — directory: `babau`
+- [x] Balor (demon) — 58 — evaluation complete — directory: `balor`
+- [x] Barbed devil — 72 — evaluation complete — directory: `barbed-devil`
+- [x] Barghest — 27 — evaluation complete — directory: `barghest`
+- [x] Basidirond — 28 — evaluation complete — directory: `basidirond`
+- [ ] Basilisk — 29 — legacy three-lane evaluation complete, four-lane production incomplete — directory: `basilisk`
+- [x] Bat (familiar) — 131 — evaluation complete — directory: `bat`
+- [x] Bat swarm — 30 — evaluation complete — directory: `bat-swarm`
+- [x] Bearded devil — 73 — evaluation complete — directory: `bearded-devil`
+- [x] Bebelith — 32 — evaluation complete — directory: `bebelith`
+- [x] Behir — 34 — evaluation complete — directory: `behir`
+- [x] Bison (herd animal) — 174 — evaluation complete — directory: `bison`
+- [x] Black dragon — 92–93 — evaluation complete — directory: `black-dragon`
+- [x] Black pudding — 35 — evaluation complete — directory: `black-pudding`
+- [x] Blue dragon — 94–95 — evaluation complete — directory: `blue-dragon`
+- [x] Boar — 36 — evaluation complete — directory: `boar`
+- [x] Boggard — 37 — evaluation complete — directory: `boggard`
+- [x] Bone devil — 74 — evaluation complete — directory: `bone-devil`
+- [ ] Brachiosaurus (dinosaur) — 83 — in progress: all four lanes assigned — directory: `brachiosaurus`
+- [ ] Bralani (azata) — 24 — in progress: bestiary light assigned, other lanes pending — directory: `bralani`

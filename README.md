@@ -90,6 +90,13 @@ python3 scripts/paizo_image_inventory.py --download
 Downloaded images are intentionally ignored by Git because they can become
 large. The CSV inventory is the source of truth for image URLs.
 
+When archiving downloaded image folders for transfer, prefer minimal compression
+for speed because image files are already compressed:
+
+```sh
+zip -r -0 -X archive-name.zip image-folder
+```
+
 ## Notes
 
 - Repository notes and inventory files may change as the integration shape
