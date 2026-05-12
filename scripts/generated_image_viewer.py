@@ -383,9 +383,14 @@ def render_page(
       viewer.classList.remove('open');
       viewerImg.removeAttribute('src');
     }}
-    document.addEventListener('click', (event) => {{
-      const target = event.target.closest('[data-full]');
-      if (target) openViewer(target.dataset.full, target.dataset.title || target.dataset.full);
+    document.querySelectorAll('[data-full]').forEach((target) => {{
+      target.addEventListener('click', (event) => {{
+        event.preventDefault();
+        event.stopPropagation();
+        openViewer(target.dataset.full, target.dataset.title || target.dataset.full);
+      }});
+    }});
+    viewer.addEventListener('click', (event) => {{
       if (event.target === viewer || event.target.id === 'close') closeViewer();
     }});
     document.addEventListener('keydown', (event) => {{
