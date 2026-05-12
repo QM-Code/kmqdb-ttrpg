@@ -22,10 +22,10 @@ THUMBS = GENERATED / ".thumbs"
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp"}
 IMAGE_DIRNAME = "images"
 LANE_PATTERNS = (
-    ("Bestiary Light", "bestiary-light"),
-    ("Silhouette Light", "silhouette-light"),
-    ("Bestiary Dark", "bestiary-dark"),
-    ("CRPG Dark", "crpg-dark"),
+    ("Bestiary Light", ("bestiary-light", "bestiary-spectral", "godel")),
+    ("Silhouette Light", ("silhouette-light", "silhouette-spectral", "kierkegaard")),
+    ("Bestiary Dark", ("bestiary-dark",)),
+    ("CRPG Dark", ("crpg-dark", "crpg-advancing", "poincare")),
 )
 SKIP_NAME_PARTS = ("reference", "context", "rejected")
 PAGE_SIZE = 100
@@ -90,8 +90,8 @@ def scan_creatures() -> list[Creature]:
 
             selected: list[Path | None] = []
             used: set[Path] = set()
-            for _, pattern in LANE_PATTERNS:
-                matches = [path for path in all_images if pattern in path.name.lower()]
+            for _, patterns in LANE_PATTERNS:
+                matches = [path for path in all_images if any(pattern in path.name.lower() for pattern in patterns)]
                 choice = matches[0] if matches else None
                 selected.append(choice)
                 if choice:
