@@ -9,36 +9,8 @@ venv/
 paizo_images/
 data/images/
 downloads/
-
-# Binary artifacts should stay out of the repository.
-*.7z
-*.ai
-*.bin
-*.bz2
-*.db
-*.gif
-*.gz
-*.icns
-*.ico
-*.jpeg
-*.jpg
-*.mov
-*.mp3
-*.mp4
-*.otf
-*.pdf
-*.png
-*.psd
-*.sqlite
-*.tar
-*.tgz
-*.ttf
-*.wav
-*.webp
-*.woff
-*.woff2
-*.xz
-*.zip
+assets/generated/.thumbs/
+assets/generated/**/images/
 
 # Local scratch/output files.
 *.log

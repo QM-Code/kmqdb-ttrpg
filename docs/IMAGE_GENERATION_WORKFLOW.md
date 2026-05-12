@@ -76,7 +76,8 @@ Every sub-agent prompt must include:
 - The exact reference image path or paths to use.
 - The lane it should generate.
 - A reminder to copy the generated image from its own tool-managed
-  `$HOME/.codex/generated_images/...` folder into the repo creature directory.
+  `$HOME/.codex/generated_images/...` folder into the repo creature `images/`
+  directory.
 - A reminder to leave generated originals in place.
 - A reminder not to overwrite existing files and not to touch other creature
   directories.
@@ -93,10 +94,16 @@ Generated creature images are repo assets by default, even during discovery.
 Do not leave useful generations only in a temporary or tool-managed image
 folder.
 
-Save each creature's outputs under:
+Save each creature's notes under:
 
 ```text
 assets/generated/<book-name>/<creature-slug>/
+```
+
+Save image and reference binaries under:
+
+```text
+assets/generated/<book-name>/<creature-slug>/images/
 ```
 
 Use descriptive filenames that include the creature and lane or purpose:
@@ -108,8 +115,9 @@ Use descriptive filenames that include the creature and lane or purpose:
 <creature>-crpg-dark-<short-direction>.png
 ```
 
-Also save prompt and evaluation notes in the same folder when a direction is
-selected, refined, or useful for future comparison.
+Also save prompt and evaluation notes in the creature directory when a direction
+is selected, refined, or useful for future comparison. The `images/` directory is
+ignored by Git; the text notes are committed.
 
 ## Book Monster Lists
 
@@ -209,7 +217,7 @@ next lane as soon as an agent reports a saved repo path.
 
 Do not close or abandon a productive sub-agent merely because it has not written
 notes yet. If images exist only in the tool-managed generated image folder,
-instruct the agent to copy them into the repo creature directory and then
+instruct the agent to copy them into the repo creature `images/` directory and then
 continue or pause according to the current batch plan.
 
 Batch sequence:
@@ -219,13 +227,13 @@ Batch sequence:
 3. For each selected monster, create:
 
    ```text
-   assets/generated/<book-name>/<creature-slug>/
+   assets/generated/<book-name>/<creature-slug>/images/
    ```
 
 4. Use the page number from `monster-list.txt` to open the matching Pathfinder
    AnyFlip page.
 5. Save the Pathfinder page image or cropped page reference in the creature
-   directory with a name like:
+   `images/` directory with a name like:
 
    ```text
    pathfinder-bestiary-<number>-page-<page>-reference.webp
@@ -236,8 +244,8 @@ Batch sequence:
 7. Spawn sub-agents to run the four image lanes with the same reference image
    and hard constraints. Maximize parallel production within the current session
    limits.
-8. Save every generated image, prompt note, and lane note in the creature
-   directory.
+8. Save every generated image in the creature `images/` directory, and save
+   prompt notes and lane notes in the creature directory.
 9. Have the monster supervisor write `parent-evaluation.md` for that creature.
 10. Have the batch parent write a short batch summary listing completed
     monsters, any failed reference pulls, and any creatures needing a second

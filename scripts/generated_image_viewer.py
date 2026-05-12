@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 GENERATED = ROOT / "assets" / "generated"
 THUMBS = GENERATED / ".thumbs"
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp"}
+IMAGE_DIRNAME = "images"
 LANE_PATTERNS = (
     ("Bestiary Light", "bestiary-light"),
     ("Silhouette Light", "silhouette-light"),
@@ -66,6 +67,15 @@ def is_display_image(path: Path) -> bool:
     return path.suffix.lower() in IMAGE_SUFFIXES and not any(part in name for part in SKIP_NAME_PARTS)
 
 
+def creature_images(creature_dir: Path) -> list[Path]:
+    image_dir = creature_dir / IMAGE_DIRNAME
+    roots = [image_dir, creature_dir] if image_dir.exists() else [creature_dir]
+    images: list[Path] = []
+    for root in roots:
+        images.extend(path for path in root.iterdir() if path.is_file() and is_display_image(path))
+    return sorted(images)
+
+
 def scan_creatures() -> list[Creature]:
     creatures: list[Creature] = []
     if not GENERATED.exists():
@@ -73,7 +83,7 @@ def scan_creatures() -> list[Creature]:
 
     for book_dir in sorted(path for path in GENERATED.iterdir() if path.is_dir() and path.name.startswith("Bestiary ")):
         for creature_dir in sorted(path for path in book_dir.iterdir() if path.is_dir() and not path.name.startswith(".")):
-            all_images = sorted(path for path in creature_dir.iterdir() if path.is_file() and is_display_image(path))
+            all_images = creature_images(creature_dir)
             if not all_images:
                 continue
 

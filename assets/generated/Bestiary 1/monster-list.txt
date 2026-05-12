@@ -359,5 +359,5 @@ Status key: `pending`, `references saved`, `in progress`, `images complete`, `ev
 - [x] Boar — 36 — evaluation complete — directory: `boar`
 - [x] Boggard — 37 — evaluation complete — directory: `boggard`
 - [x] Bone devil — 74 — evaluation complete — directory: `bone-devil`
-- [ ] Brachiosaurus (dinosaur) — 83 — in progress: all four lanes assigned — directory: `brachiosaurus`
-- [ ] Bralani (azata) — 24 — in progress: bestiary light assigned, other lanes pending — directory: `bralani`
+- [ ] Brachiosaurus (dinosaur) — 83 — in progress: 2 light saved, bestiary dark saved, CRPG dark assigned — directory: `brachiosaurus`
+- [ ] Bralani (azata) — 24 — in progress: all four lanes assigned — directory: `bralani`
