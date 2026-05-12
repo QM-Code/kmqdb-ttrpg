@@ -360,4 +360,4 @@ Status key: `pending`, `references saved`, `in progress`, `images complete`, `ev
 - [x] Boggard — 37 — evaluation complete — directory: `boggard`
 - [x] Bone devil — 74 — evaluation complete — directory: `bone-devil`
 - [x] Brachiosaurus (dinosaur) — 83 — evaluation complete — directory: `brachiosaurus`
-- [ ] Bralani (azata) — 24 — in progress: all four lanes assigned — directory: `bralani`
+- [x] Bralani (azata) — 24 — evaluation complete — directory: `bralani`
