@@ -8,7 +8,38 @@ venv/
 # Generated image downloads can become large; keep inventories in git instead.
 paizo_images/
 data/images/
+assets/
 downloads/
+
+# Binary artifacts should stay out of the repository.
+*.7z
+*.ai
+*.bin
+*.bz2
+*.db
+*.gif
+*.gz
+*.icns
+*.ico
+*.jpeg
+*.jpg
+*.mov
+*.mp3
+*.mp4
+*.otf
+*.pdf
+*.png
+*.psd
+*.sqlite
+*.tar
+*.tgz
+*.ttf
+*.wav
+*.webp
+*.woff
+*.woff2
+*.xz
+*.zip
 
 # Local scratch/output files.
 *.log
