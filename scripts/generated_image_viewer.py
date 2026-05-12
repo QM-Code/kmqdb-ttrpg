@@ -59,7 +59,8 @@ def thumb_path(path: Path) -> Path:
 
 
 def thumb_url(path: Path) -> str:
-    return "/thumb/" + urllib.parse.quote(rel(path), safe="")
+    version = str(path.stat().st_mtime_ns)
+    return "/thumb/" + urllib.parse.quote(rel(path), safe="") + "?" + urllib.parse.urlencode({"v": version})
 
 
 def is_display_image(path: Path) -> bool:
