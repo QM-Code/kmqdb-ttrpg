@@ -101,3 +101,29 @@ large. The CSV inventory is the source of truth for image URLs.
   as `PDF`, `Foundry VTT`, `soundtrack`, `download`, and `code`.
 - Raw HTML files under `data/raw-paizo-pages/` are retained as inspection
   samples from the original scrape.
+
+## Semantic Contract Package
+
+This repository also publishes the provider-owned, source-free semantic wire
+contracts consumed by the standalone Gladiator service. The dependency-free
+package installs four modules into the PEP 420 `subdomains.ttrpg` namespace:
+
+- `semantic_assets`
+- `semantic_catalog`
+- `semantic_packages`
+- `semantic_transport`
+
+Build and verify the current release with:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python tests/test_ttrpg_semantic_contract_wheel.py -v
+python scripts/build_ttrpg_semantic_contract_wheel.py --output-dir dist
+sha256sum dist/kmqdb_ttrpg_semantic_contracts-1.0.0-py3-none-any.whl
+```
+
+Version 1.0.0 is exactly
+`kmqdb_ttrpg_semantic_contracts-1.0.0-py3-none-any.whl`, SHA-256
+`7fa658b9a1e4a1148942040b318c758ebf2c49bccf27f91577ecb56e007f6e99`.
+The `semantic-contracts-v1.0.0` tag publishes that tested wheel as a GitHub
+Release asset; the release job reuses the verified CI artifact and does not
+rebuild it.

@@ -12,4 +12,5 @@ downloads/
 
 # Local scratch/output files.
 *.log
+dist/
 tmp/

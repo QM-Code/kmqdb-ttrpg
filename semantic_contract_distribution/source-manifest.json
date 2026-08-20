@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "distribution": "kmqdb-ttrpg-semantic-contracts",
+  "version": "1.0.0",
+  "wheel": "kmqdb_ttrpg_semantic_contracts-1.0.0-py3-none-any.whl",
+  "wheelSha256": "7fa658b9a1e4a1148942040b318c758ebf2c49bccf27f91577ecb56e007f6e99",
+  "modules": [
+    {
+      "module": "semantic_packages",
+      "sha256": "f33a5d6febf40bcdb32988f8ff11713288f7f18754a960bd5e1da5e4dee20cda"
+    },
+    {
+      "module": "semantic_catalog",
+      "sha256": "593d430a8f97039a86f4cc9ded7c684f0a09a09a38d7e4a0f2ef775ffc5906a3"
+    },
+    {
+      "module": "semantic_assets",
+      "sha256": "e32b3c10b9f0ef4bda7ae084253231df731280892b1d258f32cfb1e0103e2d0c"
+    },
+    {
+      "module": "semantic_transport",
+      "sha256": "a586ad89952fc410171f89ff705dced5fd4e1e1e0ce1428467f560dac93fb7d5"
+    }
+  ]
+}

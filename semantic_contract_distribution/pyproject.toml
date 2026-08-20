@@ -1,0 +1,11 @@
+[build-system]
+requires = []
+build-backend = "build_backend"
+backend-path = ["."]
+
+[project]
+name = "kmqdb-ttrpg-semantic-contracts"
+version = "1.0.0"
+description = "Provider-owned source-free TTRPG semantic wire contracts"
+requires-python = ">=3.10"
+dependencies = []
