@@ -1,0 +1,28 @@
+[Unit]
+Description=KMQDB TTRPG web app
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/srv/kmqdb-ttrpg/current
+StateDirectory=kmqdb/ttrpg
+StateDirectoryMode=0750
+Environment=KMQDB_LOG_LEVEL=INFO
+# Before startup, provision all binary bodies with:
+# scripts/sync_library_cache.py --origin https://kmqdb.com --cache /srv/kmqdb-ttrpg/current/subdomains/ttrpg/cache/cache.db --download-assets
+Environment=KMQDB_TTRPG_CACHE_DB=/srv/kmqdb-ttrpg/current/subdomains/ttrpg/cache/cache.db
+Environment=KMQDB_TTRPG_ITEM_CATALOG_DB=/srv/kmqdb-ttrpg/current/subdomains/ttrpg/cache/item-catalog.db
+Environment=KMQDB_TTRPG_AUTH_DB=/var/lib/kmqdb/ttrpg/ttrpg-auth.db
+Environment=KMQDB_TTRPG_SEMANTIC_REPOSITORY=/var/lib/kmqdb/ttrpg/semantic-repositories/REPLACE_WITH_CATALOG_DIGEST
+Environment=KMQDB_TTRPG_SSO_ISSUER=https://kmqdb.com
+Environment=KMQDB_TTRPG_SSO_REDIRECT_URI=https://ttrpg.kmqdb.com/.api/auth/sso/callback
+EnvironmentFile=/etc/kmqdb/ttrpg.env
+ExecStart=/srv/kmqdb-ttrpg/venv/bin/gunicorn --workers 2 --worker-class gthread --threads 8 --bind 127.0.0.1:8012 kmqdb_ttrpg_wsgi:application
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

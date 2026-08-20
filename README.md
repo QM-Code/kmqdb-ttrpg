@@ -1,10 +1,12 @@
 # KMQDB TTRPG
 
-KMQDB TTRPG is a working repository for collecting, organizing, and documenting
-tabletop roleplaying game product metadata and image assets.
+KMQDB TTRPG is the standalone TTRPG browser, rules-source, semantic-publication,
+and PF2E Remaster compiler service for KMQDB. It is independent of the KMQDB
+monorepo and installs beside the separately owned Core host and Gladiator game
+service.
 
-The current project focus is a Paizo Store image inventory for digital products
-across these game lines:
+The repository also maintains Paizo Store image inventories for these game
+lines:
 
 - Pathfinder 1E
 - Pathfinder 2E
@@ -12,10 +14,55 @@ across these game lines:
 - Starfinder 1E
 - Starfinder 2E
 
+## Application Distribution
+
+The application package is `kmqdb-ttrpg==0.1.0a1`. It installs the PEP 420
+`subdomains.ttrpg` service/compiler namespace and the `kmqdb_ttrpg_wsgi`
+entrypoint. Its only runtime dependencies are:
+
+- `cryptography>=41.0.7`
+- `kmqdb-ttrpg-semantic-contracts==1.0.0`
+
+Build and verify the exact application wheel with:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python tests/product_gate.py all --quiet
+PYTHONDONTWRITEBYTECODE=1 python -m unittest -v tests.test_ttrpg_application_wheel
+python scripts/build_ttrpg_application_wheel.py --output-dir dist/application
+sha256sum dist/application/kmqdb_ttrpg-0.1.0a1-py3-none-any.whl
+```
+
+The expected application-wheel SHA-256 is
+`2a5ed3eee81bbdb3ab2587fb60c4fa7613eb6c5688292a70883244019496fc58`.
+
+The portable product gate runs 176 cases and records 17 exact environmental
+skips for source-cache integration. To run the complete 193-case gate without
+skips, provide the operational cache explicitly:
+
+```sh
+KMQDB_TTRPG_TEST_CACHE_DB=/absolute/path/to/cache.db \
+  PYTHONDONTWRITEBYTECODE=1 \
+  python tests/product_gate.py all --require-live-cache --quiet
+```
+
+Production caches must be provisioned with
+`scripts/sync_library_cache.py --download-assets`. The standalone WSGI
+entrypoint therefore needs no Core or S3 Python dependency; an explicitly
+composed deployment may inject the narrow asset-stream port for body-null
+cache rows.
+
 ## Current Contents
 
 ```text
 .
+├── application_distribution/
+├── subdomains/ttrpg/
+│   ├── @static/
+│   ├── pf2er_compiler/
+│   ├── backend.py
+│   └── ttrpg_auth.py
+├── kmqdb_ttrpg_wsgi.py
+├── kmqdbttrpg.service.example
 ├── INVENTORY.md
 ├── docs/
 │   └── IMAGE_GENERATION_WORKFLOW.md
@@ -28,7 +75,10 @@ across these game lines:
 │       ├── sample_product.html
 │       └── starfinder.html
 └── scripts/
-    └── paizo_image_inventory.py
+    ├── build_item_catalog.py
+    ├── build_ttrpg_application_wheel.py
+    ├── paizo_image_inventory.py
+    └── sync_library_cache.py
 ```
 
 ## Inventory Data

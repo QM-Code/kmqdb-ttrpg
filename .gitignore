@@ -14,3 +14,4 @@ downloads/
 *.log
 dist/
 tmp/
+cache/

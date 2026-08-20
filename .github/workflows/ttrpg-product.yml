@@ -1,0 +1,123 @@
+name: TTRPG product
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+env:
+  CONTRACT_WHEEL: kmqdb_ttrpg_semantic_contracts-1.0.0-py3-none-any.whl
+  CONTRACT_SHA256: 7fa658b9a1e4a1148942040b318c758ebf2c49bccf27f91577ecb56e007f6e99
+  APPLICATION_WHEEL: kmqdb_ttrpg-0.1.0a1-py3-none-any.whl
+  APPLICATION_SHA256: 2a5ed3eee81bbdb3ab2587fb60c4fa7613eb6c5688292a70883244019496fc58
+
+jobs:
+  product:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.12"
+
+      - name: Install application test dependency
+        run: python -m pip install cryptography==41.0.7
+
+      - name: Build exact distributions
+        run: |
+          python scripts/build_ttrpg_semantic_contract_wheel.py --output-dir dist/contracts
+          python scripts/build_ttrpg_application_wheel.py --output-dir dist/application
+
+      - name: Verify exact distributions
+        run: |
+          echo "${CONTRACT_SHA256}  dist/contracts/${CONTRACT_WHEEL}" | sha256sum --check --strict
+          echo "${APPLICATION_SHA256}  dist/application/${APPLICATION_WHEEL}" | sha256sum --check --strict
+
+      - name: Install exact semantic contract for source gate
+        run: python -m pip install --no-deps "dist/contracts/${CONTRACT_WHEEL}"
+
+      - name: Run portable retained product gate
+        run: PYTHONDONTWRITEBYTECODE=1 python tests/product_gate.py all --quiet
+
+      - name: Run compiler separation boundary gate
+        run: >-
+          PYTHONDONTWRITEBYTECODE=1 python -m unittest -v
+          tests.test_pf2er_compiler_separation
+
+      - name: Run application release boundary gate
+        run: >-
+          PYTHONDONTWRITEBYTECODE=1 python -m unittest -v
+          tests.test_ttrpg_application_wheel
+
+      - name: Create clean co-install environment
+        run: |
+          python -m venv /tmp/kmqdb-ttrpg-installed
+          /tmp/kmqdb-ttrpg-installed/bin/python -m pip install cryptography==41.0.7
+          /tmp/kmqdb-ttrpg-installed/bin/python -m pip install --no-deps \
+            "dist/contracts/${CONTRACT_WHEEL}" \
+            "dist/application/${APPLICATION_WHEEL}"
+
+      - name: Prove installed namespace origins
+        run: |
+          cd /tmp
+          PYTHONSAFEPATH=1 /tmp/kmqdb-ttrpg-installed/bin/python -I - <<'PY'
+          from pathlib import Path
+          import sys
+          from subdomains.ttrpg import backend, semantic_packages
+          from subdomains.ttrpg import pf2er_compiler
+
+          prefix = Path(sys.prefix).resolve()
+          for module in (backend, semantic_packages, pf2er_compiler):
+              origin = Path(module.__file__).resolve()
+              if prefix not in origin.parents:
+                  raise SystemExit(f"module did not load from clean co-install: {origin}")
+          PY
+
+      - name: Run installed application gate with source tree blocked
+        run: |
+          mkdir -p /tmp/kmqdb-ttrpg-installed-gate
+          cp -R tests /tmp/kmqdb-ttrpg-installed-gate/tests
+          cd /tmp/kmqdb-ttrpg-installed-gate
+          PYTHONDONTWRITEBYTECODE=1 PYTHONSAFEPATH=1 \
+            /tmp/kmqdb-ttrpg-installed/bin/python -I tests/product_gate.py installed --quiet
+
+      - name: Upload tested application wheel
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: ttrpg-application-wheel-0.1.0a1
+          path: dist/application/${{ env.APPLICATION_WHEEL }}
+          if-no-files-found: error
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/tags/v0.1.0a1'
+    needs: product
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download tested application wheel
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: ttrpg-application-wheel-0.1.0a1
+          path: release
+
+      - name: Verify downloaded application wheel
+        run: |
+          test "$(find release -maxdepth 1 -type f -printf '%f\n')" = "${APPLICATION_WHEEL}"
+          echo "${APPLICATION_SHA256}  release/${APPLICATION_WHEEL}" | sha256sum --check --strict
+
+      - name: Create application release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            "release/${APPLICATION_WHEEL}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --verify-tag \
+            --title "KMQDB TTRPG v0.1.0a1" \
+            --notes "Standalone KMQDB TTRPG application and compiler distribution v0.1.0a1."

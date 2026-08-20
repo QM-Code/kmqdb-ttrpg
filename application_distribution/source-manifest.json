@@ -1,0 +1,437 @@
+{
+  "schema": 1,
+  "distribution": "kmqdb-ttrpg",
+  "version": "0.1.0a1",
+  "wheel": "kmqdb_ttrpg-0.1.0a1-py3-none-any.whl",
+  "wheelSha256": "2a5ed3eee81bbdb3ab2587fb60c4fa7613eb6c5688292a70883244019496fc58",
+  "files": [
+    {
+      "path": "kmqdb_ttrpg_wsgi.py",
+      "sha256": "bf271725a57409daf67753adb4deca31d0b52d1600f7d37a51966b6b5b27292a"
+    },
+    {
+      "path": "subdomains/ttrpg/@static/app.css",
+      "sha256": "0ff4ce60288f33b1aed2915b709b483437c2cd95e734e8f666984d0312d17db1"
+    },
+    {
+      "path": "subdomains/ttrpg/@static/app.js",
+      "sha256": "7981aff806a05d0792ed31dc3bafe615e87953f41908e2b19fbd4045fe29d1ac"
+    },
+    {
+      "path": "subdomains/ttrpg/@static/rules-menu.json",
+      "sha256": "b9ffb87a2fbca245861848ba0e874cc2602485fc5b6b469ce4e4db8437f30ada"
+    },
+    {
+      "path": "subdomains/ttrpg/@static/rules-targets.json",
+      "sha256": "1a2cbf936a6788dcb4e2a954d020615dd04bc024736b63f7550ddb9a231c422f"
+    },
+    {
+      "path": "subdomains/ttrpg/backend.py",
+      "sha256": "993d3a95cdfb01819502553f331faa8d96b77d6c699c239ff30c633f89379604"
+    },
+    {
+      "path": "subdomains/ttrpg/item_catalog.py",
+      "sha256": "30437d7239c0689e408b014a3f26709466a514301439971e147785553a1e81dd"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/__init__.py",
+      "sha256": "21d04b618ce5f866c32ab1bd947a065e837132f07ae2c8755937a2735a58f3f8"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/battlemap.py",
+      "sha256": "199081b6ce0b2a68c7d487a75ac81d26a3bfe2753c9d8e095f37989f9a838bc2"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/durability.py",
+      "sha256": "784185659afb6bf1d80ccf9566abd70c9a978ebcc754dec436a4998faf39b00d"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/equipment.py",
+      "sha256": "fae2cccf4b3ad77c57a5e06cac5daa2a642bd8cc265b1bccaf7b163e9c51400a"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/errors.py",
+      "sha256": "9ba68469a9039372c3df582729ea5c146aef0196d01ec54c4a4ae9fc8a3e0d09"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/geometry.py",
+      "sha256": "d1dd30296fa6f12e9302dce603410216d9232b7e9b3084b28a446ec1c9a814b3"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/illumination.py",
+      "sha256": "a9f9f34d746422b240f9850146ea63c68a07cc8317ccc759cfbad86560330bb4"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/map_data.py",
+      "sha256": "1fdbd6b60d9284c1e5848d412944f3737b87cb81656d0f79209cf63df8616ad2"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/__init__.py",
+      "sha256": "7de7d1c12ab01f698712230bb9af59c50fb043f9dd1c65b6b233f3f83f230a5b"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/action_costs.py",
+      "sha256": "225153d35219d27740baabb2e6cbe680da25e0062268f3bacd8e9d9e8e015ea0"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/afflictions.py",
+      "sha256": "17d0aed56742a8c43303c0345be7750325ed060349699fb681ae6b4cd627567e"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/all_around_vision.py",
+      "sha256": "3f70c01876be3925c9b2f7f598429a5d98eceb751c0cd889cc440d02f317b7b7"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/amoeba_abilities.py",
+      "sha256": "b4f512e9b13bc1902f6f46931ad00fd8b63d4dd3400e05946d277e6fb531e2d7"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/animated_construct_armor.py",
+      "sha256": "5ae4d9a30e738583e046b2ccbf36612d3779091f06e45bb5331f10a2f8da7ab3"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/annotated_stats.py",
+      "sha256": "f62fef331ae7ace8391d279ffa32f755e2c4376a3731ea7ad5076ae15193f181"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/battle_cry.py",
+      "sha256": "fb7e565902a5d921cd3e868d7a3087beba37f457b9c35df2ba342a436dc01b36"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/buck.py",
+      "sha256": "a5b956958b550139940a247024d5cdd60116a03e2c6f47ffd34017caa97822c8"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/cats_luck.py",
+      "sha256": "7f781a97779b43d1d68f32a9af5eea4bb92e543c4164ba833257bf06feccffa9"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/change_shape.py",
+      "sha256": "c05550327e45be6e13b5e91e145864b65151ffd5db1dc7e6b0d4fe7c361652d2"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/conditional_damage.py",
+      "sha256": "6d5d4a6a81467ad7c4439f4cc896e11bdde842eee3e2bd5509c37cd7043ba455"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/conditional_saves.py",
+      "sha256": "9628a24e4ae82a688371793b0ccb69265b4e6ef770082251150cf708ae75e846"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/conditions.py",
+      "sha256": "e9d55f89f1c7e1d8bec29ac83b5ea9c1a9e5214ec95257ffc93bc54554c9ae56"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/contracts.py",
+      "sha256": "feb4505019063d31b9f4377d2ac92f736c05eda834bb25d7730bbe5537071b45"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/damage_defenses.py",
+      "sha256": "8d01fff8f736628029d0b46b5e2e25d0c238c5954eceda1dd44c6849548253ad"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/damage_immunities.py",
+      "sha256": "9c508021bac3369f0300dd42e56811e2b67e531c8e5abe781a67220c685d6d1c"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/diseases.py",
+      "sha256": "0b23d525742fcc734ee7c519172fc14ec996ada4e99755bdd9d7263059668c97"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/draconic_sequences.py",
+      "sha256": "5a98a8298773228126f7f53d0c2ffe09481f64ade4d72b209bb9874faf1aa2e0"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/engulf.py",
+      "sha256": "f7fb8bf5d47ce05b03c94443914fff7ab5ad38dbc174378d49a984e8a5d55e34"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/equipment_bindings.py",
+      "sha256": "332b4fe010d83c49c7463ef8d1b40a38319802fcb9330a585b7577ec27d1decc"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/ferocity.py",
+      "sha256": "bc034a34b72d3c940c10c38c69a03f830d16013a63ca4afa213112c947574201"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/flash_beetle.py",
+      "sha256": "0da94b81004308ace6f683527647b1167d685b46f72b10a3d0a6bfe647179cfa"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/forced_movement.py",
+      "sha256": "388ecbefea914bcf10231a1149b1ab26de6b710cff24794d25db665c65a18042"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/frightful_presence.py",
+      "sha256": "dd4b201d03f853fb0c411d244272568e63a92a6ce5ecdec73e75c5c1c6419479"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/fungus_leshy.py",
+      "sha256": "dca6a06f8ee06df28a7c8deb5e7a6d9da9021519bdf454941759b8f97c6d6350"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/gaze.py",
+      "sha256": "e1c98e7d7485b05333ea90cae62a1c00964a970836db856beea5a79279cfcb12"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/generic_auras.py",
+      "sha256": "976c432cac648ff8b7aaf2e943bfa9af996c5b88808ff24a885f0dbb817228a3"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/ghoul.py",
+      "sha256": "c42d23ed438ff1017590828be8b15cc0d8e7e7a80046e11bd02985d3043687ce"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/giant_ant.py",
+      "sha256": "350378e3c3292b45f03db8376fa5419692f8e41017794b9837d29e1c8163b617"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/gnome_bard.py",
+      "sha256": "6ba2865cc4636ec62197af03c0896afac66cadba5c456788e983521cbd9ce37c"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/goblin_song.py",
+      "sha256": "104d099af0f00f8de8c9c2e78deb6a63953d18280c299ea23fa3a8d51ee584d7"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/grabbed_strike_activities.py",
+      "sha256": "7c1fed2545506e5e3ced2897434b5b0528d2a0ab5e88103d425d6ca865e4f957"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/grapples.py",
+      "sha256": "3e1074b87894207c15194c22dc60570315a58739ab3cbd0df3e15f1d29e86446"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/heal_spell.py",
+      "sha256": "14330c67bafbb528e425c7be6f3c20defbc1eafc0f493fbd6d34fecf53205ab0"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/healing_affinities.py",
+      "sha256": "78429b482eea4144c3c6c077ddcc76e00f1dd51808c37afa12ad84059479b903"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/healing_potion.py",
+      "sha256": "a5a5459786a8208aa619be61697b911c213ef54ffd71d45068b8e8b40a4991f0"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/innate_spell_usage.py",
+      "sha256": "b47c9b2ccf5f2e40eb596c2748b71ca16dc188b7c15d2345c5cd7839710618df"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/kobold_tactics.py",
+      "sha256": "8f927b7ead69b64a0d3938d9a43bd6e7e0964dd3321f0c891fde2cbaf212abac"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/movement_speeds.py",
+      "sha256": "cbc7b0ddbfcc00d192f5ff0cc8a72e19bf3ba83db1288498ad8a5d67877e365e"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/persistent_damage.py",
+      "sha256": "69ca58b549d3568383bb7cdc282f7372c68d647e7111d022c4aa75d6fc985f2e"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/persistent_damage_foundation.py",
+      "sha256": "b93a28c4cd0faaf4ff53558b5ee865332dcb0b06bd6697e44334268286a0c063"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/plague_zombie_abilities.py",
+      "sha256": "bc3f68257783cda8865be7d62427d2343bfd8d6551da01ba363649506cff61d5"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/poisons.py",
+      "sha256": "a37d929d3963d34c39709103bf6c70ec8ffed95a6177804e92c978f458ae8636"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/prepared_spellcasting.py",
+      "sha256": "99c2fd6f09cac4d359c081eeef50b02d89667be0e0efda49ecc41a9aa6d45618"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/reactive_strike.py",
+      "sha256": "dca8108fd1d12e32f7a3296700a7867c6d79b1262d8190a10c969a974f124e15"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/regeneration.py",
+      "sha256": "977f45a2183c0657752b9dba437648b89161f4bce20bafbacd0dd79bbf961faf"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/registry.py",
+      "sha256": "48fe91a5753c79bcb006e45cafde508bda5171e01f1c31c023d732c5ae8f969c"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/river_drake.py",
+      "sha256": "8ce6619e4273ef903163ac63c95d68a479a5fe247ad015d34f21e7335d46ca20"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/runic_weapon.py",
+      "sha256": "1f5e8fd1cc3552cf4775ac3ed7a7d7a13f9e23d46ef235e2679cf611d613055d"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/runtime_registry.py",
+      "sha256": "cad7600370538ec39b2b5bcf197b01f4c2209feb70a410b912f19dc876546ece"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/scarecrow.py",
+      "sha256": "61c25ae43b3d9d0570284d4804f65699a6dcb1d2fa74b44c3ac1266a77a647f5"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/scuttle.py",
+      "sha256": "3c0ed3647a4d33545c4968e749656994a2513b79b0e15e9994a53bc7a28593ee"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/shared_feast.py",
+      "sha256": "38dc41d44b6084336a27ef1402e23d7fc197f265aab4da25f35d6974836c482a"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/shield_block.py",
+      "sha256": "167f47b37b3f2ed89c733311998051a2b0856f681e238fc2ff0bc5b205ede8be"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/size_space_reach.py",
+      "sha256": "ae21064e8ec8fd510dcacca1ae44ac7cd17c26bbf20c6dbb44261ae7b254c329"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/slink.py",
+      "sha256": "67dcd5506e56e78f6f097ea5b8629732053da7e0d6ac6981bcb51c96f1c3f622"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/source_authority.py",
+      "sha256": "dfe97adfcb60542081c7a3db5b6544989df344133ff9ca3f7d2ef90f3cecff82"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/source_values.py",
+      "sha256": "78e991f369fab5cc2253079e163a4b226f8f440396bcbd41872eada62160b552"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/special_senses.py",
+      "sha256": "7b31eeafeb604e6d771b73e76ed44e1643c1948a1e9843a0f727f9dc62295a08"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/spontaneous_spellcasting.py",
+      "sha256": "3dd2b89172b098df7901f30a978eaf6b25f6351718fdfdafc03ad25367bc5c75"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/stench.py",
+      "sha256": "8f61aab3ed789640b0a2e5d37147a58095865d865ed1288b1e0ef13b917adcc2"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/stride_strike.py",
+      "sha256": "234fd47ec82ac004ae5905c98317d84f0d46b6b1cc46d4e616d336a9cd3115b9"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/strike_save_control.py",
+      "sha256": "b619eb17dbc8a4604aa3b110081c8f3c861456ba7bd46d4848f302dedfdc7e54"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/strike_sources.py",
+      "sha256": "d13f9f5546d77db228d2d32997ee4c5e8821afb161f8ce2dea45f816a9e69774"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/swallow_whole.py",
+      "sha256": "b183072583c54d17c113a7a5333b3db5df47464a1e11214d2283ee57c115d3ea"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/telepathy.py",
+      "sha256": "4e11f7cb2280ae962844e1127ef31069890677256e6be6277538aeb50317083e"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/trample.py",
+      "sha256": "4ef33a56795af6a380673787c9cb64a58fd7db626a09f492f58568332aba493b"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/triggered_creature_reactions.py",
+      "sha256": "49f30b0ab6b58de06069ee179fc045c4e182cf411c70fae86a98233a255ac47d"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/vision_senses.py",
+      "sha256": "629929bd7d204501f2de2a4d5872040e4b8cdf2d13171422f1b47e74df7c2f32"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/warg.py",
+      "sha256": "cd956ab5e42d8a2616229e77a473aa7e51b65a7403e2403e9d3cf82623bb3289"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/zombie_brute.py",
+      "sha256": "9621f4bda97c7a8d649a362df18b4c0ec3eb112dae49a56ebfdc61fd0ddc4062"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/mechanics/zombie_rot.py",
+      "sha256": "c3610e03db859df345c083bbef6c8d55f1fd3aea98a8dc32eef18f090b69eea5"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/ranged_cover.py",
+      "sha256": "b23b279d29848338502e9b00216aee9e174a6f570d9984eecf3c1a149ce22e8c"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/source.py",
+      "sha256": "5ff2c81104782dad5c49c3a8d9741b621ad73312377488442841e835767f6652"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/source_authority_store.py",
+      "sha256": "7f5b0054906aed3eb166dd62b24089d471878cbdb77fe04e9efe76c39ad7023e"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/source_compilation_plan.py",
+      "sha256": "48c30ab0c31e9da2a8f496cac756049e488f6ba2e2eec4111daa56b7e4f22cbb"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_compiler/source_nodes.py",
+      "sha256": "35c9085e59ae8e7da0ebee0253e83d5e306ae11c5f802b9306bd66e282032d4c"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_hadrosaurid_semantic.py",
+      "sha256": "3a7bb9cc303ab53601cbaf9a9520286a725aa458d8962a6e1ccba5b2f5a871bc"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_item_semantic.py",
+      "sha256": "bb209698458e1e68df827a29ccfddccbb21acd88d176837aa6c7bd7743aac03b"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_semantic.py",
+      "sha256": "8f6727a45d4301e56c3978d7badead2e05ff380d28f5f488422a1cab3d2a7cce"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_spell_semantic.py",
+      "sha256": "091356b56f07276ec3d3ca47c594f3889ef76e7aa2ff24d07afa6b521592206f"
+    },
+    {
+      "path": "subdomains/ttrpg/pf2er_viper_semantic.py",
+      "sha256": "3c82c24c6fed3b9bc8e669b19df84aed79263c84b6a3be16a8f24ca38505bed0"
+    },
+    {
+      "path": "subdomains/ttrpg/semantic_compiler.py",
+      "sha256": "200429173f474255387270a587311d66d39f91b4c7875c09b064c9e45bd7e5a1"
+    },
+    {
+      "path": "subdomains/ttrpg/semantic_evidence.py",
+      "sha256": "a5ba250b8d4fc4e18fa96cecfaee5d7e924f581a551aa572223480bf5e26d60c"
+    },
+    {
+      "path": "subdomains/ttrpg/semantic_http.py",
+      "sha256": "e4e3d93c9234a60969944306668fe948ff5b50b06afc1a46c0a280a4f5d925fe"
+    },
+    {
+      "path": "subdomains/ttrpg/semantic_package_builder.py",
+      "sha256": "276a3947a0851ca63621ec8b6ab4f5edc81d6d6ac311a4384341f21a8af4bdc3"
+    },
+    {
+      "path": "subdomains/ttrpg/semantic_publication_review.py",
+      "sha256": "499163d712c74a469557f347d36973f6a44c8cf091057d284ed543b441674acf"
+    },
+    {
+      "path": "subdomains/ttrpg/semantic_repository.py",
+      "sha256": "8d6c58704bddce1ec609b08d9fa9d9c33645d248e3b1c375e73c0c8b54ecb614"
+    },
+    {
+      "path": "subdomains/ttrpg/semantic_service.py",
+      "sha256": "fcbb6beb179c5b82d52acedff7417f0bffcfb9da26874292d95eb6d201130fd2"
+    },
+    {
+      "path": "subdomains/ttrpg/source_content.py",
+      "sha256": "d2038a4e64d53fa4833e0b166e6d819f1a4a3781764dc571b7190abd8b2cc517"
+    },
+    {
+      "path": "subdomains/ttrpg/ttrpg_auth.py",
+      "sha256": "919b4b99d16a350be1492fc17682079e1a0898c1156d3c510187b7caee9e6083"
+    }
+  ]
+}

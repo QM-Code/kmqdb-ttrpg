@@ -1,0 +1,14 @@
+[build-system]
+requires = []
+build-backend = "build_backend"
+backend-path = ["."]
+
+[project]
+name = "kmqdb-ttrpg"
+version = "0.1.0a1"
+description = "Standalone KMQDB TTRPG browser and semantic provider service"
+requires-python = ">=3.12"
+dependencies = [
+  "cryptography>=41.0.7",
+  "kmqdb-ttrpg-semantic-contracts==1.0.0",
+]
