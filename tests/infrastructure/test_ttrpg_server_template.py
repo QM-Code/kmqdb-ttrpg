@@ -12,6 +12,7 @@ BOOTSTRAP_NGINX = (
     ROOT / "infrastructure" / "aws" / "ttrpg.kmqdb.com.bootstrap.nginx"
 )
 HARDENING = ROOT / "infrastructure" / "aws" / "kmqdbttrpg-hardening.conf"
+SHELL = ROOT / "infrastructure" / "aws" / "ttrpg-shell.html"
 SERVICE = ROOT / "kmqdbttrpg.service.example"
 README = ROOT / "infrastructure" / "aws" / "README.md"
 
@@ -108,6 +109,11 @@ class TtrpgServerTemplateTests(unittest.TestCase):
         self.assertIn("ssl_reject_handshake on;", source)
         self.assertIn("return 301 https://$host$request_uri;", source)
         self.assertIn("proxy_pass http://127.0.0.1:8012;", source)
+        self.assertIn("location ^~ /.api/ {", source)
+        self.assertIn("try_files /ttrpg-shell.html =404;", source)
+        self.assertEqual(source.count("location = /.static/"), 4)
+        self.assertIn("location ^~ /.static/ {", source)
+        self.assertIn("Content-Security-Policy", source)
 
         bootstrap = BOOTSTRAP_NGINX.read_text(encoding="utf-8")
         self.assertIn("listen 80 default_server;", bootstrap)
@@ -115,6 +121,21 @@ class TtrpgServerTemplateTests(unittest.TestCase):
         self.assertIn("return 444;", bootstrap)
         self.assertIn("server_name ttrpg.kmqdb.com;", bootstrap)
         self.assertIn("proxy_pass http://127.0.0.1:8012;", bootstrap)
+
+    def test_browser_shell_uses_ttrpg_assets_and_public_core_boundary(self) -> None:
+        source = SHELL.read_text(encoding="utf-8")
+        self.assertTrue(source.startswith("<!DOCTYPE html>\n"))
+        self.assertIn('id="app"', source)
+        self.assertIn('href="/.static/app.css"', source)
+        self.assertIn('src="/.static/app.js"', source)
+        for asset in (
+            "kmqdb-workspace.css",
+            "kmqdb-menu.css",
+            "kmqdb-workspace.js",
+            "kmqdb-menu.js",
+        ):
+            self.assertIn(f"https://kmqdb.com/.core-static/{asset}", source)
+        self.assertNotIn("<script>", source)
 
     def test_deployment_documentation_pins_the_exact_bundle(self) -> None:
         source = README.read_text(encoding="utf-8")

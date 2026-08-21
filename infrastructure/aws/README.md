@@ -28,6 +28,15 @@ record only after the installed service passes its direct-host gate.
 rejects every other Host header. The TLS configuration replaces it only after
 the certificate is issued.
 
+The audited `ttrpg-shell.html` deployment file and the verified application
+wheel's four exact TTRPG static files are installed into the release directory.
+The shell is host composition and is deliberately not a wheel payload. Shared
+workspace and menu assets remain Core-owned and are loaded over public HTTPS
+from `kmqdb.com`; they are not copied into this repository or the TTRPG
+artifact. The browser therefore has an explicit Core-static service dependency
+in addition to Core SSO, while the TTRPG Python process remains
+Core-independent.
+
 ## Sealed alpha-1 deployment
 
 | Artifact | SHA-256 |
@@ -89,6 +98,8 @@ credentials.
 - releases: `/srv/kmqdb-ttrpg/releases/`
 - current release symlink: `/srv/kmqdb-ttrpg/current`
 - virtual environment symlink: `/srv/kmqdb-ttrpg/venv`
+- browser shell: `/srv/kmqdb-ttrpg/current/ttrpg-shell.html`
+- TTRPG static assets: `/srv/kmqdb-ttrpg/current/@static/`
 - cache: `/var/lib/kmqdb/ttrpg/cache/cache.db`
 - item catalog: `/var/lib/kmqdb/ttrpg/cache/item-catalog.db`
 - browser auth: `/var/lib/kmqdb/ttrpg/ttrpg-auth.db`
@@ -120,8 +131,10 @@ signing key belongs on the TTRPG host.
 - IMDSv1 returns 401; only 22/80/443 are externally reachable.
 - Cache and catalog SQLite `quick_check` pass, and the cache has zero body-null
   assets.
-- `/.api/auth/session` and `/.api/bookshelf` return 200; Game/encounter routes
-  remain 404 and an engine GET remains 405.
+- `/.api/auth/session` and `/.api/bookshelf` return 200; removed Game,
+  encounter, and engine routes remain canonical 404s.
+- `/`, `/pf2er/`, and client-side TTRPG routes return the no-store browser
+  shell; only the four declared `/.static/` files are served locally.
 - The semantic envelope route returns the configured catalog digest.
 - SSO start redirects to Core with client `ttrpg` and the exact callback.
 - Certbot renewal dry-run and a controlled reboot both recover cleanly.
