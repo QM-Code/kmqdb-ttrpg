@@ -10,13 +10,12 @@ Group=www-data
 WorkingDirectory=/srv/kmqdb-ttrpg/current
 StateDirectory=kmqdb/ttrpg
 StateDirectoryMode=0750
+RequiresMountsFor=/var/lib/kmqdb/ttrpg
 Environment=KMQDB_LOG_LEVEL=INFO
-# Before startup, provision all binary bodies with:
-# scripts/sync_library_cache.py --origin https://kmqdb.com --cache /srv/kmqdb-ttrpg/current/subdomains/ttrpg/cache/cache.db --download-assets
-Environment=KMQDB_TTRPG_CACHE_DB=/srv/kmqdb-ttrpg/current/subdomains/ttrpg/cache/cache.db
-Environment=KMQDB_TTRPG_ITEM_CATALOG_DB=/srv/kmqdb-ttrpg/current/subdomains/ttrpg/cache/item-catalog.db
+Environment=KMQDB_TTRPG_CACHE_DB=/var/lib/kmqdb/ttrpg/cache/cache.db
+Environment=KMQDB_TTRPG_ITEM_CATALOG_DB=/var/lib/kmqdb/ttrpg/cache/item-catalog.db
 Environment=KMQDB_TTRPG_AUTH_DB=/var/lib/kmqdb/ttrpg/ttrpg-auth.db
-Environment=KMQDB_TTRPG_SEMANTIC_REPOSITORY=/var/lib/kmqdb/ttrpg/semantic-repositories/REPLACE_WITH_CATALOG_DIGEST
+Environment=KMQDB_TTRPG_SEMANTIC_REPOSITORY=/var/lib/kmqdb/ttrpg/semantic-repositories/84e19dfa52236397ca7e837795908b11b72fe08d3b34ddabde2fda13bbabf6de
 Environment=KMQDB_TTRPG_SSO_ISSUER=https://kmqdb.com
 Environment=KMQDB_TTRPG_SSO_REDIRECT_URI=https://ttrpg.kmqdb.com/.api/auth/sso/callback
 EnvironmentFile=/etc/kmqdb/ttrpg.env

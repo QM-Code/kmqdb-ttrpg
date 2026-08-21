@@ -1,0 +1,260 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  Dedicated EC2 host, encrypted persistent TTRPG state, least-privilege
+  network policy, existing Elastic IP association, and optional authoritative
+  DNS for ttrpg.kmqdb.com.
+
+Parameters:
+  HostedZoneId:
+    Type: String
+    Default: Z0482932K097XLOBF5D0
+    AllowedPattern: '^Z[A-Z0-9]+$'
+  DomainName:
+    Type: String
+    Default: ttrpg.kmqdb.com
+    AllowedPattern: '^[a-z0-9.-]+$'
+  PublishDns:
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'false'
+      - 'true'
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Default: vpc-09bfad70
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Default: subnet-ecd721a7
+  AvailabilityZone:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Default: us-east-1c
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: aws
+  OperatorCidr:
+    Type: String
+    Description: Single trusted operator IPv4 address in CIDR form.
+    AllowedPattern: '^(?:[0-9]{1,3}\.){3}[0-9]{1,3}/32$'
+  ImageId:
+    Type: AWS::EC2::Image::Id
+    Default: ami-052355af2a014bd2c
+    Description: Canonical Ubuntu Server 24.04 LTS amd64 gp3 image.
+  InstanceType:
+    Type: String
+    Default: t3.small
+    AllowedValues:
+      - t3.small
+      - t3.medium
+  ExistingEipAllocationId:
+    Type: String
+    Default: eipalloc-52e89067
+    AllowedPattern: '^eipalloc-[0-9a-f]+$'
+  ExistingEipAddress:
+    Type: String
+    Default: 52.207.82.158
+    AllowedPattern: '^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$'
+  RootVolumeSizeGiB:
+    Type: Number
+    Default: 16
+    MinValue: 12
+    MaxValue: 64
+  DataVolumeSizeGiB:
+    Type: Number
+    Default: 20
+    MinValue: 10
+    MaxValue: 256
+
+Conditions:
+  PublishDnsRecord: !Equals [!Ref PublishDns, 'true']
+
+Resources:
+  TtrpgSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Dedicated ingress policy for ttrpg.kmqdb.com
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - Description: Operator SSH
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref OperatorCidr
+        - Description: Public HTTP for ACME and redirect
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - Description: Public HTTPS
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - Description: Outbound package, identity, and API access
+          IpProtocol: '-1'
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: kmqdb-ttrpg
+        - Key: Service
+          Value: ttrpg.kmqdb.com
+        - Key: ManagedBy
+          Value: cloudformation
+
+  TtrpgDataVolume:
+    Type: AWS::EC2::Volume
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone
+      Encrypted: true
+      Size: !Ref DataVolumeSizeGiB
+      VolumeType: gp3
+      Tags:
+        - Key: Name
+          Value: kmqdb-ttrpg-state
+        - Key: Service
+          Value: ttrpg.kmqdb.com
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: BackupEnabled
+          Value: 'true'
+
+  TtrpgInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone
+      CreditSpecification:
+        CPUCredits: standard
+      DisableApiTermination: true
+      ImageId: !Ref ImageId
+      InstanceInitiatedShutdownBehavior: stop
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SubnetId: !Ref SubnetId
+      SecurityGroupIds:
+        - !Ref TtrpgSecurityGroup
+      MetadataOptions:
+        HttpEndpoint: enabled
+        HttpProtocolIpv6: disabled
+        HttpPutResponseHopLimit: 1
+        HttpTokens: required
+        InstanceMetadataTags: disabled
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            DeleteOnTermination: true
+            Encrypted: true
+            VolumeSize: !Ref RootVolumeSizeGiB
+            VolumeType: gp3
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -euo pipefail
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y ca-certificates certbot curl nginx python3-certbot-nginx python3-venv sqlite3
+          systemctl enable --now nginx
+
+          install -d -m 0755 /srv/kmqdb-ttrpg/releases
+          install -d -m 0755 /etc/kmqdb
+          install -d -m 0755 /etc/kmqdb-ttrpg
+
+          volume_id='${TtrpgDataVolume}'
+          volume_serial=$(printf '%s' "$volume_id" | tr -d '-')
+          device=''
+          for attempt in $(seq 1 120); do
+            candidate="/dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_$volume_serial"
+            if [ -e "$candidate" ]; then
+              device=$(readlink -f "$candidate")
+              break
+            fi
+            sleep 5
+          done
+          if [ -z "$device" ]; then
+            echo "persistent TTRPG volume did not attach" >&2
+            exit 1
+          fi
+          filesystem=$(blkid -s TYPE -o value "$device" || true)
+          if [ -z "$filesystem" ]; then
+            mkfs.ext4 -L kmqdb-ttrpg "$device"
+          elif [ "$filesystem" != ext4 ]; then
+            echo "unexpected persistent volume filesystem: $filesystem" >&2
+            exit 1
+          fi
+          volume_uuid=$(blkid -s UUID -o value "$device")
+          if ! grep -Fq "UUID=$volume_uuid " /etc/fstab; then
+            printf 'UUID=%s /var/lib/kmqdb ext4 defaults,nofail 0 2\n' "$volume_uuid" >> /etc/fstab
+          fi
+          install -d -m 0755 /var/lib/kmqdb
+          mount /var/lib/kmqdb
+          install -d -o www-data -g www-data -m 0750 /var/lib/kmqdb/ttrpg
+          install -d -o root -g www-data -m 0750 /var/lib/kmqdb/ttrpg/cache
+          install -d -o root -g root -m 0755 /var/lib/kmqdb/ttrpg/semantic-repositories
+
+          cat > /etc/nginx/sites-available/ttrpg.kmqdb.com <<'NGINX'
+          server {
+              listen 80;
+              listen [::]:80;
+              server_name ttrpg.kmqdb.com;
+
+              location / {
+                  proxy_pass http://127.0.0.1:8012;
+                  proxy_http_version 1.1;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+                  proxy_set_header X-Forwarded-Host $host;
+              }
+          }
+          NGINX
+          rm -f /etc/nginx/sites-enabled/default
+          ln -sfn /etc/nginx/sites-available/ttrpg.kmqdb.com /etc/nginx/sites-enabled/ttrpg.kmqdb.com
+          nginx -t
+          systemctl reload nginx
+      Tags:
+        - Key: Name
+          Value: kmqdb-ttrpg
+        - Key: Service
+          Value: ttrpg.kmqdb.com
+        - Key: ManagedBy
+          Value: cloudformation
+
+  TtrpgDataVolumeAttachment:
+    Type: AWS::EC2::VolumeAttachment
+    Properties:
+      Device: /dev/sdf
+      InstanceId: !Ref TtrpgInstance
+      VolumeId: !Ref TtrpgDataVolume
+
+  TtrpgEipAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      AllocationId: !Ref ExistingEipAllocationId
+      InstanceId: !Ref TtrpgInstance
+
+  TtrpgDnsRecord:
+    Type: AWS::Route53::RecordSet
+    Condition: PublishDnsRecord
+    DependsOn: TtrpgEipAssociation
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      ResourceRecords:
+        - !Ref ExistingEipAddress
+      TTL: '300'
+      Type: A
+
+Outputs:
+  InstanceId:
+    Value: !Ref TtrpgInstance
+  SecurityGroupId:
+    Value: !Ref TtrpgSecurityGroup
+  DataVolumeId:
+    Value: !Ref TtrpgDataVolume
+  ElasticIpAddress:
+    Value: !Ref ExistingEipAddress
+  PublicOrigin:
+    Value: !Sub https://${DomainName}
+  DnsPublished:
+    Value: !Ref PublishDns

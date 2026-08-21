@@ -68,10 +68,33 @@ shell access; treat the authenticated greeting as a successful verification.
   Gladiator, and the retired local `rules_engine` package.
 - `backend.create_application(asset_streamer=...)` is the sole optional
   object-storage integration. The default application fails closed for a
-  body-null asset row. Initial deployments must provision caches with
-  `scripts/sync_library_cache.py --download-assets`.
+  body-null asset row. Build/update the source cache with
+  `scripts/sync_library_cache.py`, then use
+  `scripts/materialize_cache_assets.py` to prove and fill every exact binary
+  binding before deployment. AWS credentials are operator inputs to the
+  materializer and must never be installed on the TTRPG host.
+- Build a deployment semantic repository from reviewed package/asset bundles
+  with `scripts/build_semantic_repository.py`. Deploy only the resulting
+  digest-named immutable repository; never bundle provider source trees or
+  Game runtime data as semantic publication state.
 - The WSGI entrypoint is `kmqdb_ttrpg_wsgi:application`; the example systemd
   unit is `kmqdbttrpg.service.example`.
+
+## Production Deployment
+
+- `infrastructure/aws/` owns the dedicated `ttrpg.kmqdb.com` CloudFormation,
+  nginx, systemd-hardening, backup, and operational acceptance contract.
+- Create the stack with `PublishDns=false`, install and validate sealed
+  artifacts through the EIP, then publish the exact Route 53 record in a
+  separately inspected update. Do not combine DNS cutover with host creation.
+- Persistent databases and semantic repositories live under
+  `/var/lib/kmqdb/ttrpg` on the retained encrypted data volume. Application
+  wheels, nginx, TLS, and systemd configuration are reproducible host state.
+- The data volume uses the shared `BackupEnabled=true` DLM policy: 7 daily,
+  8 weekly, and 12 monthly snapshots. Do not attach the backup tag to the
+  replaceable root volume.
+- The instance has no IAM role or AWS credential. Only SSH from the current
+  operator `/32` and public HTTP/HTTPS are permitted.
 
 ## Verification
 

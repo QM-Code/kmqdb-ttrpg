@@ -10,14 +10,14 @@ SERVICE_PATH = Path(__file__).resolve().parents[1] / "kmqdbttrpg.service.example
 EXPECTED_TTRPG_ENVIRONMENT = {
     "KMQDB_TTRPG_AUTH_DB": "/var/lib/kmqdb/ttrpg/ttrpg-auth.db",
     "KMQDB_TTRPG_CACHE_DB": (
-        "/srv/kmqdb-ttrpg/current/subdomains/ttrpg/cache/cache.db"
+        "/var/lib/kmqdb/ttrpg/cache/cache.db"
     ),
     "KMQDB_TTRPG_ITEM_CATALOG_DB": (
-        "/srv/kmqdb-ttrpg/current/subdomains/ttrpg/cache/item-catalog.db"
+        "/var/lib/kmqdb/ttrpg/cache/item-catalog.db"
     ),
     "KMQDB_TTRPG_SEMANTIC_REPOSITORY": (
         "/var/lib/kmqdb/ttrpg/semantic-repositories/"
-        "REPLACE_WITH_CATALOG_DIGEST"
+        "84e19dfa52236397ca7e837795908b11b72fe08d3b34ddabde2fda13bbabf6de"
     ),
     "KMQDB_TTRPG_SSO_ISSUER": "https://kmqdb.com",
     "KMQDB_TTRPG_SSO_REDIRECT_URI": (
@@ -70,6 +70,7 @@ class TtrpgServiceSeparationTests(unittest.TestCase):
         source = SERVICE_PATH.read_text(encoding="utf-8")
         self.assertIn("Description=KMQDB TTRPG web app\n", source)
         self.assertIn("StateDirectory=kmqdb/ttrpg\n", source)
+        self.assertIn("RequiresMountsFor=/var/lib/kmqdb/ttrpg\n", source)
         self.assertIn("EnvironmentFile=/etc/kmqdb/ttrpg.env\n", source)
         self.assertIn(
             "127.0.0.1:8012 kmqdb_ttrpg_wsgi:application\n",
