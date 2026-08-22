@@ -1,0 +1,82 @@
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+    return 444;
+}
+
+server {
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+    ssl_reject_handshake on;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ttrpg.kmqdb.com;
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name ttrpg.kmqdb.com;
+
+    ssl_certificate /etc/letsencrypt/live/ttrpg.kmqdb.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/ttrpg.kmqdb.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    add_header Strict-Transport-Security "max-age=31536000" always;
+
+    location ^~ /.api/ {
+        proxy_pass http://127.0.0.1:8012;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+    }
+
+    location = /.static/app.css {
+        alias /srv/kmqdb-ttrpg/current/@static/app.css;
+        add_header Cache-Control "no-store" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    location = /.static/app.js {
+        alias /srv/kmqdb-ttrpg/current/@static/app.js;
+        add_header Cache-Control "no-store" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    location = /.static/rules-menu.json {
+        alias /srv/kmqdb-ttrpg/current/@static/rules-menu.json;
+        add_header Cache-Control "no-store" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    location = /.static/rules-targets.json {
+        alias /srv/kmqdb-ttrpg/current/@static/rules-targets.json;
+        add_header Cache-Control "no-store" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    location ^~ /.static/ {
+        return 404;
+    }
+
+    location / {
+        root /srv/kmqdb-ttrpg/current;
+        try_files /ttrpg-shell.html =404;
+        add_header Cache-Control "no-store" always;
+        add_header Content-Security-Policy "default-src 'none'; script-src 'self' https://kmqdb.com; style-src 'self' https://kmqdb.com 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self' data:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+}
