@@ -59,10 +59,12 @@ The runtime artifact contains only exact deployment state:
 - semantic repository catalog digest `84e19dfa52236397ca7e837795908b11b72fe08d3b34ddabde2fda13bbabf6de`.
 
 The binary cache was initially materialized locally from exact approved
-`s3://kmqdb` bindings. It remains a sealed operator-seeded artifact, not a live
-object-store mount. AWS credentials are never copied into the artifact or
-server. The portable product gate runs 179 cases with 17 exact cache-dependent
-skips; the complete live-cache gate runs 196 cases with zero skips.
+`s3://kmqdb` bindings. AWS credentials were never copied into the artifact or
+server. The active cache was subsequently replaced through the authenticated
+Library membership flow and now contains 6,097 approved binary assets with no
+body-null rows. It remains a local cache, not a live object-store mount. The
+portable product gate runs 180 cases with 17 exact cache-dependent skips; the
+complete live-cache gate runs 197 cases with zero skips.
 
 Subsequent refreshes use the generic Core-account and Library-membership
 boundary. The Core account `ttrpg` exchanges its service-bound machine
