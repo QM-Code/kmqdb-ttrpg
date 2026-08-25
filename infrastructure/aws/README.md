@@ -37,11 +37,11 @@ artifact. The browser therefore has an explicit Core-static service dependency
 in addition to Core SSO, while the TTRPG Python process remains
 Core-independent.
 
-## Sealed alpha-1 deployment
+## Sealed deployment artifacts
 
 | Artifact | SHA-256 |
 | --- | --- |
-| `kmqdb_ttrpg-0.1.0a1-py3-none-any.whl` | `2a5ed3eee81bbdb3ab2587fb60c4fa7613eb6c5688292a70883244019496fc58` |
+| `kmqdb_ttrpg-0.1.0a2-py3-none-any.whl` | `c51140de437d986829878ca91040fc55110d2456c8f562929caba6a21d50e1f5` |
 | `kmqdb_ttrpg_semantic_contracts-1.0.0-py3-none-any.whl` | `7fa658b9a1e4a1148942040b318c758ebf2c49bccf27f91577ecb56e007f6e99` |
 | `kmqdb-ttrpg-runtime-0.1.0a1.tar.gz` | `8de4b6d9ec51f71a981c8e2dd6789cad19c0ce21e1456c9ecd6e6227ef765828` |
 | `cryptography-41.0.7-cp37-abi3-manylinux_2_28_x86_64.whl` | `43f2552a2378b44869fe8827aa19e69512e3245a219104438692385b0ee119d1` |
@@ -63,8 +63,8 @@ The binary cache was initially materialized locally from exact approved
 server. The active cache was subsequently replaced through the authenticated
 Library membership flow and now contains 6,097 approved binary assets with no
 body-null rows. It remains a local cache, not a live object-store mount. The
-portable product gate runs 180 cases with 17 exact cache-dependent skips; the
-complete live-cache gate runs 197 cases with zero skips.
+portable product gate runs 181 cases with 17 exact cache-dependent skips; the
+complete live-cache gate runs 198 cases with zero skips.
 
 Subsequent refreshes use the generic Core-account and Library-membership
 boundary. The Core account `ttrpg` exchanges its service-bound machine
@@ -77,6 +77,10 @@ TTRPG verifies the immutable generation and caches its structured publication
 plus bounded direct-use media on the retained volume. Normal browser/compiler
 requests use that local cache and incur no cross-service transfer. Revocation
 prevents another fetch but does not invalidate already cached bytes.
+The cache metadata binds the exact owner-qualified Library dataset to the
+bookshelf receipt, while the runtime independently requires the selected
+ruleset. A Library owner is therefore an input to a refresh, not a hard-coded
+application identity.
 
 ## Infrastructure workflow
 

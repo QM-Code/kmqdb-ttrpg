@@ -369,6 +369,13 @@ class CacheSyncTests(unittest.TestCase):
                     connection.execute("SELECT value FROM metadata WHERE key='ruleset'").fetchone()[0],
                     "pf2er",
                 )
+                self.assertEqual(
+                    connection.execute(
+                        "SELECT value FROM metadata "
+                        "WHERE key='library_dataset'"
+                    ).fetchone()[0],
+                    "karmak/games/ttrpg/pf2er",
+                )
                 self.assertEqual(connection.execute("SELECT count(*) FROM sources").fetchone()[0], 1)
                 self.assertEqual(connection.execute("SELECT count(*) FROM sections").fetchone()[0], 1)
                 row = connection.execute(

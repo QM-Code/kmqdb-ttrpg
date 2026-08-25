@@ -1476,6 +1476,7 @@ def create_cache(
     with sqlite3.connect(path) as connection:
         connection.executescript(SCHEMA_SQL)
         metadata = {
+            "library_dataset": LIBRARY_DATASET,
             "ruleset": RULESET_ID,
             "source_generation": generation,
             "upstream_origin": origin,

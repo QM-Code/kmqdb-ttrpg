@@ -32,7 +32,6 @@ from .pf2er_compiler.mechanics import source_authority
 
 LOGGER = logging.getLogger(__name__)
 RULESET_ID = "pf2er"
-LIBRARY_DATASET = "library/games/ttrpg/pf2er"
 LOCAL_RENDERER_DATASET = ".api/assets/pf2er"
 PUBLICATION_SECTION_LABELS = ("Front Matter", "Back Matter")
 CACHE_SCHEMA_VERSION = 3
@@ -44,6 +43,10 @@ RULE_MENU_PATH = ROOT / "@static" / "rules-menu.json"
 SOURCE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 SPELL_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 GENERATION_RE = re.compile(r"^[0-9a-f]{64}$")
+LIBRARY_DATASET_RE = re.compile(
+    rf"^[a-z0-9](?:[a-z0-9-]{{0,61}}[a-z0-9])?"
+    rf"/games/ttrpg/{re.escape(RULESET_ID)}$"
+)
 CSS_IMPORT_RE = re.compile(
     r"@import\s+(?:url\(\s*(?:\"[^\"]*\"|'[^']*'|[^)]*)\s*\)|(?:\"[^\"]*\"|'[^']*'))[^;]*;",
     re.IGNORECASE,
@@ -345,7 +348,8 @@ def begin_validated_cache_snapshot(
         str(row["key"] or ""): str(row["value"] or "")
         for row in connection.execute(
             "SELECT key, value FROM metadata "
-            "WHERE key IN ('ruleset', 'source_generation')"
+            "WHERE key IN "
+            "('library_dataset', 'ruleset', 'source_generation')"
         )
     }
     if metadata.get("ruleset") != RULESET_ID:
@@ -358,6 +362,11 @@ def begin_validated_cache_snapshot(
     ):
         raise CacheUnavailable(
             "content cache source generation is invalid"
+        )
+    library_dataset = metadata.get("library_dataset", "")
+    if LIBRARY_DATASET_RE.fullmatch(library_dataset) is None:
+        raise CacheUnavailable(
+            "content cache library dataset is invalid"
         )
     bookshelf_rows = connection.execute(
         "SELECT singleton, payload FROM bookshelf "
@@ -383,7 +392,7 @@ def begin_validated_cache_snapshot(
         type(bookshelf_receipt) is not dict
         or type(bookshelf_receipt.get("schema")) is not int
         or bookshelf_receipt["schema"] != 2
-        or bookshelf_receipt.get("dataset") != LIBRARY_DATASET
+        or bookshelf_receipt.get("dataset") != library_dataset
         or type(bookshelf_receipt.get("generation")) is not str
         or GENERATION_RE.fullmatch(
             bookshelf_receipt["generation"]
@@ -654,6 +663,19 @@ def cached_upstream_origin(connection: sqlite3.Connection) -> str:
     return str(row[0] or "").rstrip("/") if row is not None else ""
 
 
+def cached_library_dataset(connection: sqlite3.Connection) -> str:
+    try:
+        row = connection.execute(
+            "SELECT value FROM metadata WHERE key = 'library_dataset'"
+        ).fetchone()
+    except sqlite3.Error as failure:
+        raise CacheUnavailable("content cache is unavailable") from failure
+    value = str(row[0] or "") if row is not None else ""
+    if LIBRARY_DATASET_RE.fullmatch(value) is None:
+        raise CacheUnavailable("content cache library dataset is invalid")
+    return value
+
+
 def public_bookshelf(payload: dict, cached_source_ids: set[str] | None = None) -> dict:
     entries = []
     for item in payload.get("entries") or []:
@@ -833,8 +855,14 @@ def publication_scope_allows(environ: dict, token: str, source_id: str, root: st
     )
 
 
-def rewrite_cached_text(value: str, upstream_origin: str = "") -> str:
-    upstream_prefix = f"/{LIBRARY_DATASET}"
+def rewrite_cached_text(
+    value: str,
+    library_dataset: str,
+    upstream_origin: str = "",
+) -> str:
+    if LIBRARY_DATASET_RE.fullmatch(library_dataset) is None:
+        raise CacheUnavailable("content cache library dataset is invalid")
+    upstream_prefix = f"/{library_dataset}"
     local_prefix = f"/{LOCAL_RENDERER_DATASET}"
     text = str(value)
     if upstream_origin:
@@ -842,13 +870,35 @@ def rewrite_cached_text(value: str, upstream_origin: str = "") -> str:
     return text.replace(upstream_prefix, local_prefix)
 
 
-def rewrite_cached_value(value: object, upstream_origin: str = ""):
+def rewrite_cached_value(
+    value: object,
+    library_dataset: str,
+    upstream_origin: str = "",
+):
     if isinstance(value, dict):
-        return {key: rewrite_cached_value(item, upstream_origin) for key, item in value.items()}
+        return {
+            key: rewrite_cached_value(
+                item,
+                library_dataset,
+                upstream_origin,
+            )
+            for key, item in value.items()
+        }
     if isinstance(value, list):
-        return [rewrite_cached_value(item, upstream_origin) for item in value]
+        return [
+            rewrite_cached_value(
+                item,
+                library_dataset,
+                upstream_origin,
+            )
+            for item in value
+        ]
     if isinstance(value, str):
-        return rewrite_cached_text(value, upstream_origin)
+        return rewrite_cached_text(
+            value,
+            library_dataset,
+            upstream_origin,
+        )
     return value
 
 
@@ -883,7 +933,11 @@ def publication_response(connection: sqlite3.Connection, environ: dict, start_re
     toc, roots = public_publication_toc(forest)
     origin = cached_upstream_origin(connection)
     exposed_source = public_source(source, source_id, has_cover=asset_is_cached(connection, "cover", source_id))
-    exposed_source = rewrite_cached_value(exposed_source, origin)
+    exposed_source = rewrite_cached_value(
+        exposed_source,
+        cached_library_dataset(connection),
+        origin,
+    )
     return json_response(
         start_response,
         {
@@ -1009,7 +1063,11 @@ def source_node_packet(
         "content": {"section": selected_section, "chapter": chapter},
         "presentation": presentation_proxy_manifest(presentation),
     }
-    return rewrite_cached_value(packet, cached_upstream_origin(connection))
+    return rewrite_cached_value(
+        packet,
+        cached_library_dataset(connection),
+        cached_upstream_origin(connection),
+    )
 
 
 def allowed_rule_targets() -> frozenset[tuple[str, str]]:

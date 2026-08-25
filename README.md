@@ -35,7 +35,7 @@ lines:
 
 ## Application Distribution
 
-The application package is `kmqdb-ttrpg==0.1.0a1`. It installs the PEP 420
+The application package is `kmqdb-ttrpg==0.1.0a2`. It installs the PEP 420
 `subdomains.ttrpg` service/compiler namespace and the `kmqdb_ttrpg_wsgi`
 entrypoint. Its only runtime dependencies are:
 
@@ -48,14 +48,14 @@ Build and verify the exact application wheel with:
 PYTHONDONTWRITEBYTECODE=1 python tests/product_gate.py all --quiet
 PYTHONDONTWRITEBYTECODE=1 python -m unittest -v tests.test_ttrpg_application_wheel
 python scripts/build_ttrpg_application_wheel.py --output-dir dist/application
-sha256sum dist/application/kmqdb_ttrpg-0.1.0a1-py3-none-any.whl
+sha256sum dist/application/kmqdb_ttrpg-0.1.0a2-py3-none-any.whl
 ```
 
 The expected application-wheel SHA-256 is
-`2a5ed3eee81bbdb3ab2587fb60c4fa7613eb6c5688292a70883244019496fc58`.
+`c51140de437d986829878ca91040fc55110d2456c8f562929caba6a21d50e1f5`.
 
-The portable product gate runs 180 cases and records 17 exact environmental
-skips for source-cache integration. To run the complete 197-case gate without
+The portable product gate runs 181 cases and records 17 exact environmental
+skips for source-cache integration. To run the complete 198-case gate without
 skips, provide the operational cache explicitly:
 
 ```sh
@@ -75,6 +75,13 @@ media corpus.
 The active cache file is deployed as `0640 root:www-data`. The synchronizer
 creates a new cache with mode `0640` and preserves an existing cache's exact
 mode and ownership across its atomic replacement.
+
+Every cache records its exact owner-qualified Library dataset separately from
+the selected ruleset. The runtime accepts any valid Library owner slug, binds
+the bookshelf receipt to that recorded dataset, and still requires the
+current runtime ruleset. This keeps `karmak` out of the reusable TTRPG cache
+consumer while preventing a cache for another ruleset from being mounted by
+mistake.
 
 The bounded local cache lets TTRPG serve its browser, compiler, and catalog
 while Library is unreachable. The standalone WSGI entrypoint therefore needs

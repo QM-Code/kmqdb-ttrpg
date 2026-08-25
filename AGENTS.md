@@ -67,9 +67,9 @@ shell access; treat the authenticated greeting as a successful verification.
 ## Application Distribution
 
 - The application distribution is distinct from the semantic-contract
-  distribution. Version `0.1.0a1` builds as
-  `kmqdb_ttrpg-0.1.0a1-py3-none-any.whl` with SHA-256
-  `2a5ed3eee81bbdb3ab2587fb60c4fa7613eb6c5688292a70883244019496fc58`.
+  distribution. Version `0.1.0a2` builds as
+  `kmqdb_ttrpg-0.1.0a2-py3-none-any.whl` with SHA-256
+  `c51140de437d986829878ca91040fc55110d2456c8f562929caba6a21d50e1f5`.
 - `application_distribution/source-manifest.json` is the exact wheel source
   authority. Build only with
   `python scripts/build_ttrpg_application_wheel.py --output-dir <dir>`.
@@ -109,6 +109,9 @@ shell access; treat the authenticated greeting as a successful verification.
 - TTRPG is ruleset-neutral. Its Library membership scope is `games/ttrpg`;
   `pf2er` is only the first selected ruleset and must not be hard-coded as the
   identity, authorization, cache-root, or synchronization protocol boundary.
+  Each cache persists the exact owner-qualified Library dataset; the runtime
+  accepts any valid owner slug only when the receipt agrees and the selected
+  ruleset remains exact.
 - The WSGI entrypoint is `kmqdb_ttrpg_wsgi:application`; the example systemd
   unit is `kmqdbttrpg.service.example`.
 
@@ -133,7 +136,7 @@ shell access; treat the authenticated greeting as a successful verification.
 - Portable retained product gate:
   `PYTHONDONTWRITEBYTECODE=1 python tests/product_gate.py all --quiet`.
 - Full live-cache gate: set `KMQDB_TTRPG_TEST_CACHE_DB` to an absolute cache
-  path and add `--require-live-cache`; this must run 197 tests with zero skips.
+  path and add `--require-live-cache`; this must run 198 tests with zero skips.
 - Application release boundary:
   `PYTHONDONTWRITEBYTECODE=1 python -m unittest -v tests.test_ttrpg_application_wheel`.
 - Semantic contract boundary:

@@ -18,7 +18,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 APPLICATION_MODULES = (
-    ("test_backend.py", 21),
+    ("test_backend.py", 22),
     ("test_backend_semantic_catalog_mount.py", 2),
     ("test_ttrpg_auth.py", 10),
     ("test_sync_library_cache.py", 32),
@@ -63,10 +63,10 @@ GATES = {
 
 CACHE_ENVIRONMENT = "KMQDB_TTRPG_TEST_CACHE_DB"
 PORTABLE_EXPECTATIONS = {
-    "application": (175, 17),
-    "installed": (130, 11),
+    "application": (176, 17),
+    "installed": (131, 11),
     "semantic-contract": (5, 0),
-    "all": (180, 17),
+    "all": (181, 17),
 }
 
 

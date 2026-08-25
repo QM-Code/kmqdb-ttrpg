@@ -5,7 +5,7 @@ backend-path = ["."]
 
 [project]
 name = "kmqdb-ttrpg"
-version = "0.1.0a1"
+version = "0.1.0a2"
 description = "Standalone KMQDB TTRPG browser and semantic provider service"
 requires-python = ">=3.12"
 dependencies = [

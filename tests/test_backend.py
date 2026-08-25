@@ -133,6 +133,7 @@ class TtrpgBackendTests(unittest.TestCase):
         path: Path | None = None,
         generation: str = GENERATION,
         monster_name: str = "Monster Core",
+        library_slug: str = "karmak",
     ) -> None:
         destination = path or self.cache
         toc = [
@@ -179,8 +180,8 @@ class TtrpgBackendTests(unittest.TestCase):
                 "description": "Forge Your Legend!",
                 "images": {"count": 466, "page1": "002"},
             },
-            "css": '@import url("https://fonts.example/font.css"); .x{background:url("/library/games/ttrpg/pf2er/.static/icons/x")}',
-            "renderer": "/library/games/ttrpg/pf2er/.static/renderer.js",
+            "css": '@import url("https://fonts.example/font.css"); .x{background:url("/karmak/games/ttrpg/pf2er/.static/icons/x")}',
+            "renderer": "/karmak/games/ttrpg/pf2er/.static/renderer.js",
             "vocab": "{}",
         }
         sections = [
@@ -193,7 +194,7 @@ class TtrpgBackendTests(unittest.TestCase):
                 "chapter_name": "",
                 "section": "",
                 "content": (
-                    '{"image":"/library/games/ttrpg/pf2er/.static/'
+                    '{"image":"/karmak/games/ttrpg/pf2er/.static/'
                     'pages/core/pc1/x1024/002.webp"}'
                 ),
             },
@@ -282,6 +283,10 @@ class TtrpgBackendTests(unittest.TestCase):
             connection.executemany(
                 "INSERT INTO metadata VALUES (?, ?)",
                 [
+                    (
+                        "library_dataset",
+                        f"{library_slug}/games/ttrpg/pf2er",
+                    ),
                     ("ruleset", "pf2er"),
                     ("source_generation", generation),
                     ("upstream_origin", "http://library.example"),
@@ -294,7 +299,9 @@ class TtrpgBackendTests(unittest.TestCase):
                         {
                             "schema": 2,
                             "generation": generation,
-                            "dataset": backend.LIBRARY_DATASET,
+                            "dataset": (
+                                f"{library_slug}/games/ttrpg/pf2er"
+                            ),
                             "name": "Pathfinder 2E Remaster",
                             "description": "Books",
                             "entries": [
@@ -317,7 +324,7 @@ class TtrpgBackendTests(unittest.TestCase):
                     json.dumps(
                         {
                             "vocabulary": {"blocks": {}},
-                            "renderer": "/library/games/ttrpg/pf2er/.static/example",
+                            "renderer": "/karmak/games/ttrpg/pf2er/.static/example",
                             "stylesheets": [{"index": 0}],
                             "scripts": [{"index": 0}],
                         }
@@ -546,7 +553,10 @@ class TtrpgBackendTests(unittest.TestCase):
         self.assertIn("/.api/assets/pf2er/.static/icons/x", packet["source"]["css"])
         self.assertIn("/.api/assets/pf2er/.static/pages/", packet["content"]["section"]["content"])
         self.assertEqual(packet["presentation"]["stylesheets"], ["/.api/presentation/css/0"])
-        self.assertNotIn(backend.LIBRARY_DATASET, json.dumps(packet))
+        self.assertNotIn(
+            "karmak/games/ttrpg/pf2er",
+            json.dumps(packet),
+        )
         self.assertFalse(hasattr(backend, "upstream_request"))
 
     def test_text_cache_miss_returns_not_found_without_fallback(self) -> None:
@@ -569,6 +579,36 @@ class TtrpgBackendTests(unittest.TestCase):
         payload = json.loads(body)
         self.assertNotIn("generation", payload)
         self.assertNotIn("dataset", payload)
+
+    def test_cache_dataset_is_owner_neutral_but_ruleset_scoped(self) -> None:
+        with sqlite3.connect(self.cache) as connection:
+            connection.execute(
+                "UPDATE metadata SET value=? "
+                "WHERE key='library_dataset'",
+                ("another-owner/games/ttrpg/pf2er",),
+            )
+            bookshelf = json.loads(
+                connection.execute(
+                    "SELECT payload FROM bookshelf WHERE singleton=1"
+                ).fetchone()[0]
+            )
+            bookshelf["dataset"] = "another-owner/games/ttrpg/pf2er"
+            connection.execute(
+                "UPDATE bookshelf SET payload=? WHERE singleton=1",
+                (json.dumps(bookshelf),),
+            )
+        status, _headers, _body, _environ = self.call("/.api/bookshelf")
+        self.assertEqual(status, "200 OK")
+
+        with sqlite3.connect(self.cache) as connection:
+            connection.execute(
+                "UPDATE metadata SET value=? "
+                "WHERE key='library_dataset'",
+                ("another-owner/games/ttrpg/starfinder2e",),
+            )
+        status, _headers, body, _environ = self.call("/.api/bookshelf")
+        self.assertEqual(status, "503 Service Unavailable")
+        self.assertIn(b"library dataset is invalid", body)
 
     def test_cache_open_requires_generation_and_authority_snapshot(self) -> None:
         with sqlite3.connect(self.cache) as connection:
