@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "distribution": "kmqdb-ttrpg",
-  "version": "0.1.0a2",
-  "wheel": "kmqdb_ttrpg-0.1.0a2-py3-none-any.whl",
-  "wheelSha256": "c51140de437d986829878ca91040fc55110d2456c8f562929caba6a21d50e1f5",
+  "version": "0.1.0a3",
+  "wheel": "kmqdb_ttrpg-0.1.0a3-py3-none-any.whl",
+  "wheelSha256": "e2d97f8e63899bdd8fb19140887efe2099c738de51048a8549149277763f1301",
   "files": [
     {
       "path": "kmqdb_ttrpg_wsgi.py",
@@ -379,7 +379,7 @@
     },
     {
       "path": "subdomains/ttrpg/pf2er_hadrosaurid_semantic.py",
-      "sha256": "3a7bb9cc303ab53601cbaf9a9520286a725aa458d8962a6e1ccba5b2f5a871bc"
+      "sha256": "79067f878f0b802656f1a338a5c2c319ca4de03b4bc795c2cc3b51c7fb6311f1"
     },
     {
       "path": "subdomains/ttrpg/pf2er_item_semantic.py",
@@ -395,7 +395,7 @@
     },
     {
       "path": "subdomains/ttrpg/pf2er_viper_semantic.py",
-      "sha256": "3c82c24c6fed3b9bc8e669b19df84aed79263c84b6a3be16a8f24ca38505bed0"
+      "sha256": "031ffbad53df33fd7aa874082a1167b0d2c3580229d0842cebb740b993e2b013"
     },
     {
       "path": "subdomains/ttrpg/semantic_compiler.py",

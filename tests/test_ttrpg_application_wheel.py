@@ -22,7 +22,7 @@ CONTRACT_BACKEND_PATH = (
     REPOSITORY_ROOT / "semantic_contract_distribution" / "build_backend.py"
 )
 EXPECTED_WHEEL_SHA256 = (
-    "c51140de437d986829878ca91040fc55110d2456c8f562929caba6a21d50e1f5"
+    "e2d97f8e63899bdd8fb19140887efe2099c738de51048a8549149277763f1301"
 )
 EXPECTED_PAYLOAD_COUNT = 107
 CONTRACT_PATHS = frozenset(
@@ -130,7 +130,7 @@ class TtrpgApplicationWheelTests(unittest.TestCase):
             )
         metadata = BytesParser(policy=compat32).parsebytes(metadata_bytes)
         self.assertEqual(metadata["Name"], "kmqdb-ttrpg")
-        self.assertEqual(metadata["Version"], "0.1.0a2")
+        self.assertEqual(metadata["Version"], "0.1.0a3")
         self.assertEqual(
             metadata.get_all("Requires-Dist"),
             [

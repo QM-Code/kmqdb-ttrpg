@@ -10,8 +10,8 @@ permissions:
 env:
   CONTRACT_WHEEL: kmqdb_ttrpg_semantic_contracts-1.0.0-py3-none-any.whl
   CONTRACT_SHA256: 7fa658b9a1e4a1148942040b318c758ebf2c49bccf27f91577ecb56e007f6e99
-  APPLICATION_WHEEL: kmqdb_ttrpg-0.1.0a2-py3-none-any.whl
-  APPLICATION_SHA256: c51140de437d986829878ca91040fc55110d2456c8f562929caba6a21d50e1f5
+  APPLICATION_WHEEL: kmqdb_ttrpg-0.1.0a3-py3-none-any.whl
+  APPLICATION_SHA256: e2d97f8e63899bdd8fb19140887efe2099c738de51048a8549149277763f1301
 
 jobs:
   product:
@@ -89,12 +89,12 @@ jobs:
       - name: Upload tested application wheel
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: ttrpg-application-wheel-0.1.0a2
+          name: ttrpg-application-wheel-0.1.0a3
           path: dist/application/${{ env.APPLICATION_WHEEL }}
           if-no-files-found: error
 
   release:
-    if: github.event_name == 'push' && github.ref == 'refs/tags/v0.1.0a2'
+    if: github.event_name == 'push' && github.ref == 'refs/tags/v0.1.0a3'
     needs: product
     runs-on: ubuntu-latest
     permissions:
@@ -103,7 +103,7 @@ jobs:
       - name: Download tested application wheel
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          name: ttrpg-application-wheel-0.1.0a2
+          name: ttrpg-application-wheel-0.1.0a3
           path: release
 
       - name: Verify downloaded application wheel
@@ -119,5 +119,5 @@ jobs:
             "release/${APPLICATION_WHEEL}" \
             --repo "${GITHUB_REPOSITORY}" \
             --verify-tag \
-            --title "KMQDB TTRPG v0.1.0a2" \
-            --notes "Standalone KMQDB TTRPG application and compiler distribution v0.1.0a2."
+            --title "KMQDB TTRPG v0.1.0a3" \
+            --notes "Standalone KMQDB TTRPG application and compiler distribution v0.1.0a3."

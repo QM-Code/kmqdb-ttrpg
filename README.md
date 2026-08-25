@@ -35,7 +35,7 @@ lines:
 
 ## Application Distribution
 
-The application package is `kmqdb-ttrpg==0.1.0a2`. It installs the PEP 420
+The application package is `kmqdb-ttrpg==0.1.0a3`. It installs the PEP 420
 `subdomains.ttrpg` service/compiler namespace and the `kmqdb_ttrpg_wsgi`
 entrypoint. Its only runtime dependencies are:
 
@@ -48,11 +48,11 @@ Build and verify the exact application wheel with:
 PYTHONDONTWRITEBYTECODE=1 python tests/product_gate.py all --quiet
 PYTHONDONTWRITEBYTECODE=1 python -m unittest -v tests.test_ttrpg_application_wheel
 python scripts/build_ttrpg_application_wheel.py --output-dir dist/application
-sha256sum dist/application/kmqdb_ttrpg-0.1.0a2-py3-none-any.whl
+sha256sum dist/application/kmqdb_ttrpg-0.1.0a3-py3-none-any.whl
 ```
 
 The expected application-wheel SHA-256 is
-`c51140de437d986829878ca91040fc55110d2456c8f562929caba6a21d50e1f5`.
+`e2d97f8e63899bdd8fb19140887efe2099c738de51048a8549149277763f1301`.
 
 The portable product gate runs 181 cases and records 17 exact environmental
 skips for source-cache integration. To run the complete 198-case gate without

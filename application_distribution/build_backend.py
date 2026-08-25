@@ -21,9 +21,9 @@ from zipfile import ZIP_STORED, ZipFile, ZipInfo
 
 
 DISTRIBUTION_NAME = "kmqdb-ttrpg"
-DISTRIBUTION_VERSION = "0.1.0a2"
-WHEEL_NAME = "kmqdb_ttrpg-0.1.0a2-py3-none-any.whl"
-DIST_INFO = "kmqdb_ttrpg-0.1.0a2.dist-info"
+DISTRIBUTION_VERSION = "0.1.0a3"
+WHEEL_NAME = "kmqdb_ttrpg-0.1.0a3-py3-none-any.whl"
+DIST_INFO = "kmqdb_ttrpg-0.1.0a3.dist-info"
 CRYPTOGRAPHY_DEPENDENCY = "cryptography >=41.0.7"
 SEMANTIC_CONTRACT_DEPENDENCY = "kmqdb-ttrpg-semantic-contracts ==1.0.0"
 

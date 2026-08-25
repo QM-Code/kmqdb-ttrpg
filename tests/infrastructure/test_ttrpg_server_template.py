@@ -140,7 +140,7 @@ class TtrpgServerTemplateTests(unittest.TestCase):
     def test_deployment_documentation_pins_the_exact_bundle(self) -> None:
         source = README.read_text(encoding="utf-8")
         for digest in (
-            "c51140de437d986829878ca91040fc55110d2456c8f562929caba6a21d50e1f5",
+            "e2d97f8e63899bdd8fb19140887efe2099c738de51048a8549149277763f1301",
             "7fa658b9a1e4a1148942040b318c758ebf2c49bccf27f91577ecb56e007f6e99",
             "8de4b6d9ec51f71a981c8e2dd6789cad19c0ce21e1456c9ecd6e6227ef765828",
             "abb170fb8fe73a45ca165a63706f66d85aa0b71c4cc4e5a6c8be7ac25359fffd",

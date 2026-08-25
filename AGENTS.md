@@ -67,9 +67,9 @@ shell access; treat the authenticated greeting as a successful verification.
 ## Application Distribution
 
 - The application distribution is distinct from the semantic-contract
-  distribution. Version `0.1.0a2` builds as
-  `kmqdb_ttrpg-0.1.0a2-py3-none-any.whl` with SHA-256
-  `c51140de437d986829878ca91040fc55110d2456c8f562929caba6a21d50e1f5`.
+  distribution. Version `0.1.0a3` builds as
+  `kmqdb_ttrpg-0.1.0a3-py3-none-any.whl` with SHA-256
+  `e2d97f8e63899bdd8fb19140887efe2099c738de51048a8549149277763f1301`.
 - `application_distribution/source-manifest.json` is the exact wheel source
   authority. Build only with
   `python scripts/build_ttrpg_application_wheel.py --output-dir <dir>`.

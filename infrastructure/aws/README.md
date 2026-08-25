@@ -41,7 +41,7 @@ Core-independent.
 
 | Artifact | SHA-256 |
 | --- | --- |
-| `kmqdb_ttrpg-0.1.0a2-py3-none-any.whl` | `c51140de437d986829878ca91040fc55110d2456c8f562929caba6a21d50e1f5` |
+| `kmqdb_ttrpg-0.1.0a3-py3-none-any.whl` | `e2d97f8e63899bdd8fb19140887efe2099c738de51048a8549149277763f1301` |
 | `kmqdb_ttrpg_semantic_contracts-1.0.0-py3-none-any.whl` | `7fa658b9a1e4a1148942040b318c758ebf2c49bccf27f91577ecb56e007f6e99` |
 | `kmqdb-ttrpg-runtime-0.1.0a1.tar.gz` | `8de4b6d9ec51f71a981c8e2dd6789cad19c0ce21e1456c9ecd6e6227ef765828` |
 | `cryptography-41.0.7-cp37-abi3-manylinux_2_28_x86_64.whl` | `43f2552a2378b44869fe8827aa19e69512e3245a219104438692385b0ee119d1` |
@@ -81,6 +81,12 @@ The cache metadata binds the exact owner-qualified Library dataset to the
 bookshelf receipt, while the runtime independently requires the selected
 ruleset. A Library owner is therefore an input to a refresh, not a hard-coded
 application identity.
+
+The first owner-qualified refresh changed the private source-authority digest
+without changing any selected rule, block, member, or semantic content hash.
+Version `0.1.0a3` records that reviewed authority and its derived private
+receipt identities. This is an acquisition-evidence reseal, not a rules or
+public-definition change.
 
 ## Infrastructure workflow
 
