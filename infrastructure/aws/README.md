@@ -58,17 +58,21 @@ The runtime artifact contains only exact deployment state:
 - item catalog digest `53e360e054a9f9fdd57e7f42841f015c9418e58e3b4095370862554355a9bf4e`;
 - semantic repository catalog digest `84e19dfa52236397ca7e837795908b11b72fe08d3b34ddabde2fda13bbabf6de`.
 
-The binary cache was materialized locally from exact approved `s3://kmqdb`
-bindings before the generic cross-service grant protocol existed. It is a
-sealed operator-seeded artifact, not evidence of a live Library dependency.
-AWS and Library credentials are never copied into the artifact or server. The
-complete 193-case live-cache gate and 147-case clean installed-wheel gate must
-both pass with zero skips before deployment.
+The binary cache was initially materialized locally from exact approved
+`s3://kmqdb` bindings. It remains a sealed operator-seeded artifact, not a live
+object-store mount. AWS credentials are never copied into the artifact or
+server. The portable product gate runs 179 cases with 17 exact cache-dependent
+skips; the complete live-cache gate runs 196 cases with zero skips.
 
-Before a later cache refresh, Library must grant one immutable generation to
-TTRPG through Core's generic service-workload identity contract. Library is
-authoritative for exact delivered-byte accounting; TTRPG verifies the receipt
-and caches the generation on its retained volume. Normal browser/compiler
+Subsequent refreshes use the generic Core-account and Library-membership
+boundary. The Core account `ttrpg` exchanges its service-bound machine
+credential for a short-lived Library-audience assertion. Library then verifies
+that identity and its active `reader` membership in the owner library
+`karmak`, scoped to `games/ttrpg`. The synchronizer selects one ruleset child;
+PF2ER is the first, not a special identity or storage boundary. Library is
+authoritative for delivered-byte accounting and charges the library owner.
+TTRPG verifies the immutable generation and caches its structured publication
+plus bounded direct-use media on the retained volume. Normal browser/compiler
 requests use that local cache and incur no cross-service transfer. Revocation
 prevents another fetch but does not invalidate already cached bytes.
 

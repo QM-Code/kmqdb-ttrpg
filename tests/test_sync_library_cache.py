@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from concurrent.futures import ThreadPoolExecutor
 import importlib.util
 import io
 import json
@@ -147,6 +148,168 @@ def snapshot_payload(cache: Path) -> tuple[str, dict]:
 
 
 class CacheSyncTests(unittest.TestCase):
+    def test_ruleset_selection_is_below_generic_ttrpg_membership_scope(self) -> None:
+        previous = (
+            sync.LIBRARY_SLUG,
+            sync.RULESET_ID,
+            sync.LIBRARY_DATASET,
+            sync.LOCAL_RENDERER_DATASET,
+        )
+        try:
+            sync.configure_ruleset(
+                library_slug="karmak", ruleset_id="starfinder2e"
+            )
+            self.assertEqual(
+                sync.LIBRARY_DATASET,
+                "karmak/games/ttrpg/starfinder2e",
+            )
+            self.assertEqual(
+                sync.LOCAL_RENDERER_DATASET,
+                ".api/assets/starfinder2e",
+            )
+        finally:
+            (
+                sync.LIBRARY_SLUG,
+                sync.RULESET_ID,
+                sync.LIBRARY_DATASET,
+                sync.LOCAL_RENDERER_DATASET,
+            ) = previous
+
+    def test_core_machine_credential_exchanges_for_refreshing_library_assertion(self) -> None:
+        class Response:
+            headers = {
+                "Content-Type": "application/json",
+                "Cache-Control": "no-store",
+            }
+
+            def __init__(self, endpoint):
+                self.endpoint = endpoint
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def geturl(self):
+                return self.endpoint
+
+            def read(self, _limit=None):
+                return json.dumps(
+                    {
+                        "token_type": "urn:kmqdb:identity-token",
+                        "identity_token": "signed-library-identity",
+                        "expires_in": 120,
+                    }
+                ).encode("utf-8")
+
+        class Opener:
+            def __init__(self):
+                self.requests = []
+
+            def open(self, request, timeout=None):
+                self.requests.append((request, timeout))
+                return Response(request.full_url)
+
+        with tempfile.TemporaryDirectory() as directory:
+            credential_file = Path(directory) / "library-machine.credential"
+            credential_file.write_text(
+                "kmqdb.machine.v1." + "A" * 43 + "\n",
+                encoding="utf-8",
+            )
+            credential_file.chmod(0o600)
+            identity = sync.CoreMachineIdentity(
+                "https://kmqdb.com", credential_file, timeout=8
+            )
+            opener = Opener()
+            identity.opener = opener
+            with mock.patch.object(sync.time, "monotonic", return_value=100.0):
+                with ThreadPoolExecutor(max_workers=8) as executor:
+                    headers = list(
+                        executor.map(
+                            lambda _index: identity.authorization_header(),
+                            range(8),
+                        )
+                    )
+                first, second = headers[:2]
+        self.assertEqual(first, "Bearer signed-library-identity")
+        self.assertEqual(second, first)
+        self.assertEqual(headers, [first] * 8)
+        self.assertEqual(len(opener.requests), 1)
+        request, timeout = opener.requests[0]
+        self.assertEqual(timeout, 8)
+        payload = dict(
+            sync.urlparse.parse_qsl(request.data.decode("ascii"))
+        )
+        self.assertEqual(
+            payload,
+            {
+                "grant_type": sync.MACHINE_CREDENTIAL_GRANT_TYPE,
+                "client_id": "library",
+                "machine_credential": "kmqdb.machine.v1." + "A" * 43,
+            },
+        )
+
+    def test_machine_account_accepts_exact_scoped_library_invitation(self) -> None:
+        class Response:
+            headers = {
+                "Content-Type": "application/json",
+                "Cache-Control": "no-store",
+                "Pragma": "no-cache",
+            }
+
+            def __init__(self, endpoint):
+                self.endpoint = endpoint
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def geturl(self):
+                return self.endpoint
+
+            def read(self, _limit=None):
+                return json.dumps(
+                    {
+                        "schema": 1,
+                        "library": {
+                            "slug": "karmak",
+                            "membershipRole": "reader",
+                            "status": "active",
+                            "hierarchyScopes": ["games/ttrpg"],
+                        },
+                    }
+                ).encode("utf-8")
+
+        class Opener:
+            def __init__(self):
+                self.requests = []
+
+            def open(self, request, timeout=None):
+                self.requests.append((request, timeout))
+                return Response(request.full_url)
+
+        client = sync.LibraryClient(
+            "https://lib.kmqdb.com",
+            authorization_provider=lambda: "Bearer short-lived-assertion",
+            timeout=8,
+        )
+        opener = Opener()
+        client.opener = opener
+        token = "kmqdb.library.invite.v1." + "B" * 43
+        payload = client.accept_invitation(token)
+        self.assertEqual(payload["library"]["slug"], "karmak")
+        request, timeout = opener.requests[0]
+        self.assertEqual(timeout, 8)
+        self.assertEqual(
+            request.full_url,
+            "https://lib.kmqdb.com/.api/library-invitations/accept",
+        )
+        self.assertEqual(request.headers["Authorization"], "Bearer short-lived-assertion")
+        self.assertEqual(json.loads(request.data), {"token": token})
+
     def test_atomic_cache_contains_text_rows_and_s3_allowlist(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             cache = Path(directory) / "cache" / "cache.db"
@@ -1309,11 +1472,17 @@ class CacheSyncTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as directory:
             cache = Path(directory) / "cache.db"
+            credential_file = Path(directory) / "machine.credential"
             client = Client()
+            identity = mock.Mock()
             with mock.patch.object(
                 sync,
                 "LibraryClient",
                 return_value=client,
+            ), mock.patch.object(
+                sync,
+                "CoreMachineIdentity",
+                return_value=identity,
             ), mock.patch.object(
                 sync,
                 "fetch_presentation",
@@ -1338,6 +1507,8 @@ class CacheSyncTests(unittest.TestCase):
                             "https://kmqdb.example",
                             "--cache",
                             str(cache),
+                            "--machine-credential-file",
+                            str(credential_file),
                         ]
                     ),
                     0,
@@ -1905,7 +2076,10 @@ class CacheSyncTests(unittest.TestCase):
             {
                 "id": "core-pc1",
                 "meta": {"description": "Book", "images": {"count": 400}},
-                "css": '@import "https://fonts.example/font.css"; .x{url(/library/games/ttrpg/pf2er/.static/icons/x)}',
+                "css": (
+                    '@import "https://fonts.example/font.css"; '
+                    f'.x{{url(/{sync.LIBRARY_DATASET}/.static/icons/x)}}'
+                ),
             },
             "core-pc1",
             "https://kmqdb.example",

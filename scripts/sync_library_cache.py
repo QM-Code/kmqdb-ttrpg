@@ -11,6 +11,8 @@ import re
 import sqlite3
 import sys
 import tempfile
+import threading
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -29,7 +31,8 @@ from subdomains.ttrpg import source_content
 
 
 RULESET_ID = "pf2er"
-LIBRARY_DATASET = "library/games/ttrpg/pf2er"
+LIBRARY_SLUG = "karmak"
+LIBRARY_DATASET = "karmak/games/ttrpg/pf2er"
 LIBRARY_DB = "sqlite"
 LOCAL_RENDERER_DATASET = ".api/assets/pf2er"
 CACHE_SCHEMA_VERSION = 3
@@ -49,6 +52,21 @@ CSS_IMPORT_RE = re.compile(
 )
 SOURCE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 GENERATION_RE = re.compile(r"^[0-9a-f]{64}$")
+RULESET_ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{0,63}$")
+LIBRARY_SLUG_RE = re.compile(
+    r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+)
+MACHINE_CREDENTIAL_RE = re.compile(
+    r"^kmqdb\.machine\.v1\.[A-Za-z0-9_-]{43}$"
+)
+LIBRARY_INVITATION_RE = re.compile(
+    r"^kmqdb\.library\.invite\.v1\.[A-Za-z0-9_-]{43}$"
+)
+MACHINE_CREDENTIAL_GRANT_TYPE = (
+    "urn:kmqdb:params:oauth:grant-type:machine-credential"
+)
+CORE_LIBRARY_CLIENT_ID = "library"
+MAX_CORE_TOKEN_RESPONSE_BYTES = 64 * 1024
 GENERATION_BOUND_OPERATIONS = frozenset(
     {"bookshelf", "source-publication", "source-sections"}
 )
@@ -127,6 +145,137 @@ class LibraryRequestFailure(SyncFailure):
 class NoRedirectHandler(urlrequest.HTTPRedirectHandler):
     def redirect_request(self, _request, _file_pointer, _code, _message, _headers, _new_url):
         return None
+
+
+def configure_ruleset(*, library_slug: str, ruleset_id: str) -> None:
+    global RULESET_ID, LIBRARY_SLUG, LIBRARY_DATASET, LOCAL_RENDERER_DATASET
+    if (
+        type(library_slug) is not str
+        or LIBRARY_SLUG_RE.fullmatch(library_slug) is None
+        or type(ruleset_id) is not str
+        or RULESET_ID_RE.fullmatch(ruleset_id) is None
+    ):
+        raise SyncFailure("library slug or TTRPG ruleset is invalid")
+    LIBRARY_SLUG = library_slug
+    RULESET_ID = ruleset_id
+    LIBRARY_DATASET = f"{library_slug}/games/ttrpg/{ruleset_id}"
+    LOCAL_RENDERER_DATASET = f".api/assets/{ruleset_id}"
+
+
+def read_machine_credential(path: Path) -> str:
+    candidate = Path(path)
+    if (
+        not candidate.is_absolute()
+        or candidate.is_symlink()
+        or not candidate.is_file()
+        or candidate.stat().st_mode & 0o077
+        or candidate.stat().st_size > 1024
+    ):
+        raise SyncFailure("Core machine credential file is invalid")
+    try:
+        credential = candidate.read_text(encoding="utf-8").strip()
+    except (OSError, UnicodeError) as failure:
+        raise SyncFailure("Core machine credential file is unavailable") from failure
+    if MACHINE_CREDENTIAL_RE.fullmatch(credential) is None:
+        raise SyncFailure("Core machine credential file is invalid")
+    return credential
+
+
+def read_library_invitation(path: Path) -> str:
+    candidate = Path(path)
+    if (
+        not candidate.is_absolute()
+        or candidate.is_symlink()
+        or not candidate.is_file()
+        or candidate.stat().st_mode & 0o077
+        or candidate.stat().st_size > 1024
+    ):
+        raise SyncFailure("Library invitation file is invalid")
+    try:
+        invitation = candidate.read_text(encoding="utf-8").strip()
+    except (OSError, UnicodeError) as failure:
+        raise SyncFailure("Library invitation file is unavailable") from failure
+    if LIBRARY_INVITATION_RE.fullmatch(invitation) is None:
+        raise SyncFailure("Library invitation file is invalid")
+    return invitation
+
+
+class CoreMachineIdentity:
+    def __init__(
+        self,
+        origin: str,
+        credential_file: Path,
+        *,
+        timeout: float = 30.0,
+    ) -> None:
+        self.origin = clean_origin(origin)
+        self.credential = read_machine_credential(credential_file)
+        self.timeout = timeout
+        self.opener = urlrequest.build_opener(NoRedirectHandler())
+        self._assertion = ""
+        self._refresh_at = 0.0
+        self._lock = threading.Lock()
+
+    def authorization_header(self) -> str:
+        with self._lock:
+            return self._authorization_header_locked()
+
+    def _authorization_header_locked(self) -> str:
+        if self._assertion and time.monotonic() < self._refresh_at:
+            return "Bearer " + self._assertion
+        endpoint = self.origin + "/.api/auth/sso/token"
+        body = urlparse.urlencode(
+            {
+                "grant_type": MACHINE_CREDENTIAL_GRANT_TYPE,
+                "client_id": CORE_LIBRARY_CLIENT_ID,
+                "machine_credential": self.credential,
+            }
+        ).encode("ascii")
+        request = urlrequest.Request(
+            endpoint,
+            data=body,
+            method="POST",
+            headers={
+                "Accept": "application/json",
+                "Content-Type": "application/x-www-form-urlencoded",
+                "User-Agent": "KMQDB-TTRPG-Core-Identity/1",
+            },
+        )
+        try:
+            with self.opener.open(request, timeout=self.timeout) as response:
+                if response.geturl() != endpoint:
+                    raise SyncFailure(
+                        "Core machine credential exchange redirected"
+                    )
+                raw = response.read(MAX_CORE_TOKEN_RESPONSE_BYTES + 1)
+                headers = response_headers(response.headers)
+        except urlerror.HTTPError as failure:
+            failure.read(MAX_CORE_TOKEN_RESPONSE_BYTES + 1)
+            raise SyncFailure("Core machine credential was rejected") from failure
+        except (urlerror.URLError, TimeoutError, OSError) as failure:
+            raise SyncFailure("Core identity service is unavailable") from failure
+        if len(raw) > MAX_CORE_TOKEN_RESPONSE_BYTES:
+            raise SyncFailure("Core machine token response is too large")
+        require_no_store("machine-token", headers)
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as failure:
+            raise SyncFailure("Core machine token response is invalid") from failure
+        if (
+            type(payload) is not dict
+            or set(payload) != {"token_type", "identity_token", "expires_in"}
+            or payload["token_type"] != "urn:kmqdb:identity-token"
+            or type(payload["identity_token"]) is not str
+            or not payload["identity_token"]
+            or type(payload["expires_in"]) is not int
+            or not 1 <= payload["expires_in"] <= 300
+        ):
+            raise SyncFailure("Core machine token response is invalid")
+        self._assertion = payload["identity_token"]
+        self._refresh_at = time.monotonic() + max(
+            1, payload["expires_in"] - 30
+        )
+        return "Bearer " + self._assertion
 
 
 def compact_json(value: object) -> str:
@@ -799,10 +948,17 @@ def require_generation_token(value: object, label: str) -> str:
 
 
 class LibraryClient:
-    def __init__(self, origin: str, *, cookie: str = "", authorization: str = "", timeout: float = 30.0):
+    def __init__(
+        self,
+        origin: str,
+        *,
+        authorization_provider=None,
+        timeout: float = 30.0,
+    ):
+        if authorization_provider is not None and not callable(authorization_provider):
+            raise SyncFailure("Library authorization provider is invalid")
         self.origin = clean_origin(origin)
-        self.cookie = cookie
-        self.authorization = authorization
+        self.authorization_provider = authorization_provider
         self.timeout = timeout
         self.opener = urlrequest.build_opener(NoRedirectHandler())
 
@@ -814,6 +970,61 @@ class LibraryClient:
         query = urlparse.urlencode(params or {}, doseq=True)
         return f"{path}?{query}" if query else path
 
+    def accept_invitation(self, token: str) -> dict:
+        if LIBRARY_INVITATION_RE.fullmatch(str(token or "")) is None:
+            raise SyncFailure("Library invitation is invalid")
+        endpoint = self.origin + "/.api/library-invitations/accept"
+        authorization = (
+            self.authorization_provider()
+            if self.authorization_provider is not None
+            else ""
+        )
+        if not authorization:
+            raise SyncFailure("Library invitation authorization is unavailable")
+        body = compact_json({"token": token}).encode("utf-8")
+        request = urlrequest.Request(
+            endpoint,
+            data=body,
+            method="POST",
+            headers={
+                "Accept": "application/json",
+                "Authorization": authorization,
+                "Content-Type": "application/json",
+                "User-Agent": "KMQDB-TTRPG-Cache-Sync/1",
+            },
+        )
+        try:
+            with self.opener.open(request, timeout=self.timeout) as response:
+                if response.geturl() != endpoint:
+                    raise SyncFailure("Library invitation acceptance redirected")
+                raw = response.read(MAX_ROW_BYTES + 1)
+                headers = response_headers(response.headers)
+        except urlerror.HTTPError as failure:
+            failure.read(MAX_ROW_BYTES + 1)
+            raise SyncFailure("Library invitation was rejected") from failure
+        except (urlerror.URLError, TimeoutError, OSError) as failure:
+            raise SyncFailure("Library invitation service is unavailable") from failure
+        if len(raw) > MAX_ROW_BYTES:
+            raise SyncFailure("Library invitation response is too large")
+        require_no_store("library-invitation", headers)
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as failure:
+            raise SyncFailure("Library invitation response is invalid") from failure
+        library = payload.get("library") if type(payload) is dict else None
+        if (
+            type(payload) is not dict
+            or set(payload) != {"schema", "library"}
+            or payload["schema"] != 1
+            or type(library) is not dict
+            or library.get("slug") != LIBRARY_SLUG
+            or library.get("membershipRole") != "reader"
+            or library.get("status") != "active"
+            or library.get("hierarchyScopes") != ["games/ttrpg"]
+        ):
+            raise SyncFailure("Library invitation response is invalid")
+        return payload
+
     def request(
         self,
         operation: str,
@@ -824,10 +1035,13 @@ class LibraryClient:
         json_body: object | None = None,
     ) -> BinaryPayload:
         headers = {"Accept": accept, "User-Agent": "KMQDB-TTRPG-Cache-Sync/1"}
-        if self.cookie:
-            headers["Cookie"] = self.cookie
-        if self.authorization:
-            headers["Authorization"] = self.authorization
+        authorization = (
+            self.authorization_provider()
+            if self.authorization_provider is not None
+            else ""
+        )
+        if authorization:
+            headers["Authorization"] = authorization
         body = None
         if json_body is not None:
             body = compact_json(json_body).encode("utf-8")
@@ -1384,7 +1598,7 @@ def replace_cache(
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Atomically synchronize the PF2ER TTRPG request cache from the library API."
+        description="Atomically synchronize one selected TTRPG ruleset cache from the Library API."
     )
     parser.add_argument(
         "--origin",
@@ -1392,12 +1606,45 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help="Main library HTTP(S) origin (or KMQDB_TTRPG_LIBRARY_ORIGIN).",
     )
     parser.add_argument("--cache", type=Path, default=DEFAULT_CACHE_PATH)
+    parser.add_argument(
+        "--library-slug",
+        default=os.environ.get("KMQDB_TTRPG_LIBRARY_SLUG", "karmak"),
+        help="Library membership slug (default: karmak).",
+    )
+    parser.add_argument(
+        "--ruleset",
+        default=os.environ.get("KMQDB_TTRPG_RULESET", "pf2er"),
+        help="Selected ruleset below games/ttrpg (default: pf2er).",
+    )
     parser.add_argument("--source", action="append", default=[], help="Build a cache containing only this source; repeatable.")
     parser.add_argument("--download-assets", action="store_true", help="Store approved binary assets in SQLite instead of relying only on their S3 bindings.")
     parser.add_argument("--asset-workers", type=int, default=8)
     parser.add_argument("--timeout", type=float, default=30.0)
-    parser.add_argument("--cookie", default=os.environ.get("KMQDB_TTRPG_LIBRARY_COOKIE", ""))
-    parser.add_argument("--authorization", default=os.environ.get("KMQDB_TTRPG_LIBRARY_AUTHORIZATION", ""))
+    parser.add_argument(
+        "--core-origin",
+        default=os.environ.get("KMQDB_CORE_ORIGIN", "https://kmqdb.com"),
+        help="Core identity origin (default: https://kmqdb.com).",
+    )
+    parser.add_argument(
+        "--machine-credential-file",
+        type=Path,
+        default=(
+            Path(os.environ["KMQDB_TTRPG_LIBRARY_MACHINE_CREDENTIAL_FILE"])
+            if os.environ.get("KMQDB_TTRPG_LIBRARY_MACHINE_CREDENTIAL_FILE")
+            else None
+        ),
+        help="Absolute mode-0600 Core machine credential file.",
+    )
+    parser.add_argument(
+        "--library-invitation-file",
+        type=Path,
+        default=(
+            Path(os.environ["KMQDB_TTRPG_LIBRARY_INVITATION_FILE"])
+            if os.environ.get("KMQDB_TTRPG_LIBRARY_INVITATION_FILE")
+            else None
+        ),
+        help="Optional one-use mode-0600 Library invitation token file.",
+    )
     return parser.parse_args(argv)
 
 
@@ -1434,18 +1681,34 @@ def verify_final_bookshelf(
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(list(argv or sys.argv[1:]))
+    configure_ruleset(
+        library_slug=args.library_slug,
+        ruleset_id=args.ruleset,
+    )
     if not args.origin:
         raise SyncFailure("--origin or KMQDB_TTRPG_LIBRARY_ORIGIN is required")
     if args.timeout <= 0:
         raise SyncFailure("--timeout must be positive")
     if args.asset_workers <= 0:
         raise SyncFailure("--asset-workers must be positive")
-    client = LibraryClient(
-        args.origin,
-        cookie=args.cookie,
-        authorization=args.authorization,
+    if args.machine_credential_file is None:
+        raise SyncFailure(
+            "--machine-credential-file or KMQDB_TTRPG_LIBRARY_MACHINE_CREDENTIAL_FILE is required"
+        )
+    machine_identity = CoreMachineIdentity(
+        args.core_origin,
+        args.machine_credential_file,
         timeout=args.timeout,
     )
+    client = LibraryClient(
+        args.origin,
+        authorization_provider=machine_identity.authorization_header,
+        timeout=args.timeout,
+    )
+    if args.library_invitation_file is not None:
+        client.accept_invitation(
+            read_library_invitation(args.library_invitation_file)
+        )
     bookshelf = client.get_json("bookshelf", params={"db": LIBRARY_DB})
     generation = generation_from_payload("bookshelf", bookshelf)
     available = [

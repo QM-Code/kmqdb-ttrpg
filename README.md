@@ -13,10 +13,16 @@ separate payment customer or service-specific billing implementation.
 Subscription eligibility is not source-data authority. The current alpha-1
 cache is a sealed, operator-seeded snapshot and ordinary TTRPG operation has no
 live Library dependency or credential. Before the next refresh, the Library
-owner must grant the exact immutable generation through Core's generic
-cross-service identity contract. Library meters bytes actually transferred;
-TTRPG verifies and durably caches them, so cache hits create no repeated
-transfer cost and revocation affects only future retrieval.
+owner must grant the Core account `ttrpg` a reader membership scoped to
+`games/ttrpg`. TTRPG exchanges its Core-owned machine credential for a
+short-lived Library-audience identity assertion, then Library applies the
+membership and scope. TTRPG verifies and durably caches the selected ruleset's
+immutable generation; revocation affects only future refreshes. Library
+attributes storage and outgoing transfer to its owner regardless of the
+receiving system or destination, so there is no TTRPG-specific
+transfer-accounting protocol. PF2ER is the first selected ruleset, not the
+authorization or service boundary; this service is intended to encode all
+TTRPG rulesets.
 
 The repository also maintains Paizo Store image inventories for these game
 lines:
@@ -48,8 +54,8 @@ sha256sum dist/application/kmqdb_ttrpg-0.1.0a1-py3-none-any.whl
 The expected application-wheel SHA-256 is
 `2a5ed3eee81bbdb3ab2587fb60c4fa7613eb6c5688292a70883244019496fc58`.
 
-The portable product gate runs 176 cases and records 17 exact environmental
-skips for source-cache integration. To run the complete 193-case gate without
+The portable product gate runs 179 cases and records 17 exact environmental
+skips for source-cache integration. To run the complete 196-case gate without
 skips, provide the operational cache explicitly:
 
 ```sh
@@ -59,10 +65,49 @@ KMQDB_TTRPG_TEST_CACHE_DB=/absolute/path/to/cache.db \
 ```
 
 Production caches must be provisioned with
-`scripts/sync_library_cache.py --download-assets`. The standalone WSGI
-entrypoint therefore needs no Core or S3 Python dependency; an explicitly
-composed deployment may inject the narrow asset-stream port for body-null
-cache rows.
+`scripts/sync_library_cache.py --download-assets`. This caches the complete
+structured publication plus only the explicit Library `source-assets` set:
+canonical covers, semantic icons, and book-local resource images used by
+TTRPG. It does **not** copy original PDFs, high-resolution source material, or
+every page image. Library S3 remains authoritative for the complete source and
+media corpus.
+
+The bounded local cache lets TTRPG serve its browser, compiler, and catalog
+while Library is unreachable. The standalone WSGI entrypoint therefore needs
+no Core or S3 Python dependency; an explicitly composed deployment may still
+inject the narrow asset-stream port for body-null cache rows. If measured
+local-volume or snapshot cost later becomes material, the reproducible media
+cache may move to a TTRPG-owned S3 bucket excluded from nightly backups without
+changing Library authority or the verified-generation contract.
+
+The synchronizer is ruleset-neutral. A production refresh reads a
+service-bound Core machine credential from a mode-0600 file, exchanges it for
+a short-lived Library assertion as needed, and selects one child below the
+member scope `games/ttrpg`:
+
+```sh
+python3 scripts/sync_library_cache.py \
+  --origin https://lib.kmqdb.com \
+  --core-origin https://kmqdb.com \
+  --machine-credential-file /etc/kmqdb/ttrpg-library.credential \
+  --library-slug karmak \
+  --ruleset pf2er \
+  --download-assets
+```
+
+The credential must belong to a Core account subscribed to Library; Library
+must separately grant that account a reader membership whose scope includes
+the selected path. Changing `--ruleset` selects another published child such
+as a future Starfinder or other TTRPG ruleset without changing the identity,
+membership, or cache protocol.
+
+For the first refresh only, the Library owner can create a reader invitation
+scoped exactly to `games/ttrpg`. Store that one-use token in a separate
+mode-0600 file and add `--library-invitation-file /absolute/path/to/file`.
+The synchronizer exchanges its Core credential, accepts the invitation as the
+authenticated Core account, verifies the returned role and scope, and then
+continues with the normal refresh. Remove the consumed invitation file after a
+successful run; subsequent refreshes use the persisted Library membership.
 
 ## Current Contents
 
@@ -142,9 +187,11 @@ Library rejects an unauthenticated request to that route. The inventory script
 does not perform Core SSO or accept a browser cookie, so do not point it at the
 production URL and expect an anonymous scrape. Its `--source-api-url` mode is
 for an explicitly authorized local/operator endpoint. The future production
-machine flow is an immutable, metered Library export grant, not direct reuse of
-this browser API. Never put a Library browser session in source control or
-shell history.
+machine flow uses the Core account `ttrpg`, a short-lived Library-audience
+identity assertion, Library reader membership scoped to `games/ttrpg`, and
+immutable generation verification. It does not reuse the browser API or a
+Library-local service credential. Never put a Library browser session or Core
+machine credential in source control or shell history.
 
 `--verify-image-urls` keeps only rows whose thumbnail and full-size URLs return
 image content.

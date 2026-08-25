@@ -16,10 +16,12 @@
   local authorization; do not add payment-provider or Library billing schemas
   here.
 - A subscription does not authorize Library data. The next Library-backed
-  refresh must use Core's separate generic resource-grant protocol: Library
-  authorizes and meters the exact transfer, while TTRPG verifies and durably
-  caches the immutable generation. Cache hits create no new transfer cost;
-  revocation blocks only future retrieval.
+  refresh uses the Core account `ttrpg`: Core proves that immutable identity,
+  while Library authorizes its reader membership in `karmak` scoped to
+  `games/ttrpg`. Library billing is attributed to the Library owner regardless
+  of receiver or destination. TTRPG verifies and durably caches the selected
+  ruleset's immutable structured generation plus its bounded direct-use media
+  closure; revocation blocks only future refreshes.
 - Normal files use mode `644` and directories use mode `755`. Keep cache,
   authentication, and semantic-repository state out of Git.
 
@@ -79,21 +81,34 @@ shell access; treat the authenticated greeting as a successful verification.
   Gladiator, and the retired local `rules_engine` package.
 - `backend.create_application(asset_streamer=...)` is the sole optional
   object-storage integration. The default application fails closed for a
-  body-null asset row. Build/update the source cache with
-  `scripts/sync_library_cache.py`, then use
+  body-null asset row. Normal production builds a fully local runtime cache
+  with `scripts/sync_library_cache.py --download-assets`, or uses
   `scripts/materialize_cache_assets.py` to prove and fill every exact binary
   binding before deployment. AWS credentials are operator inputs to the
   materializer and must never be installed on the TTRPG host.
+- "Fully local" is deliberately bounded. TTRPG caches its structured source
+  publication and only the Library `source-assets` closure: canonical covers,
+  semantic icons, and book-local resource images directly used by TTRPG. It
+  does not cache original PDFs, high-resolution originals, or every source
+  page image. Library S3 remains authoritative for that larger corpus.
+- The bounded local media cache is reproducible runtime state whose purpose is
+  continued operation during Library outages. If measured EBS or snapshot
+  cost becomes material, it may move to a TTRPG-owned S3 cache excluded from
+  nightly retained-volume backups; that is a storage optimization, not a
+  change in publication authority.
 - Build a deployment semantic repository from reviewed package/asset bundles
   with `scripts/build_semantic_repository.py`. Deploy only the resulting
   digest-named immutable repository; never bundle provider source trees or
   Game runtime data as semantic publication state.
 - The sealed alpha-1 cache is pre-protocol operator-seeded evidence, not a
-  live Library integration. TTRPG carries no Library browser session, bucket
-  permission, or permanent cross-service credential. Before its next refresh,
-  implement and record the exact grant, immutable receipt, and delivered-byte
-  accounting defined by `QM-Code/kmqdb` in
-  `AGENTS/service-resource-grants.md`.
+  live Library integration. TTRPG carries no Library browser session or bucket
+  permission. Before its next refresh, replace the old dataset-path/browser
+  credential seam with a Core machine-credential exchange, Library
+  membership/scope authorization, and verified-generation flow defined by
+  `QM-Code/kmqdb` in `AGENTS/service-resource-grants.md`.
+- TTRPG is ruleset-neutral. Its Library membership scope is `games/ttrpg`;
+  `pf2er` is only the first selected ruleset and must not be hard-coded as the
+  identity, authorization, cache-root, or synchronization protocol boundary.
 - The WSGI entrypoint is `kmqdb_ttrpg_wsgi:application`; the example systemd
   unit is `kmqdbttrpg.service.example`.
 
@@ -118,7 +133,7 @@ shell access; treat the authenticated greeting as a successful verification.
 - Portable retained product gate:
   `PYTHONDONTWRITEBYTECODE=1 python tests/product_gate.py all --quiet`.
 - Full live-cache gate: set `KMQDB_TTRPG_TEST_CACHE_DB` to an absolute cache
-  path and add `--require-live-cache`; this must run 193 tests with zero skips.
+  path and add `--require-live-cache`; this must run 196 tests with zero skips.
 - Application release boundary:
   `PYTHONDONTWRITEBYTECODE=1 python -m unittest -v tests.test_ttrpg_application_wheel`.
 - Semantic contract boundary:
