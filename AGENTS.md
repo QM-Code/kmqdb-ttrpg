@@ -100,12 +100,12 @@ shell access; treat the authenticated greeting as a successful verification.
   with `scripts/build_semantic_repository.py`. Deploy only the resulting
   digest-named immutable repository; never bundle provider source trees or
   Game runtime data as semantic publication state.
-- The sealed alpha-1 cache is pre-protocol operator-seeded evidence, not a
-  live Library integration. TTRPG carries no Library browser session or bucket
-  permission. Before its next refresh, replace the old dataset-path/browser
-  credential seam with a Core machine-credential exchange, Library
-  membership/scope authorization, and verified-generation flow defined by
-  `QM-Code/kmqdb` in `AGENTS/service-resource-grants.md`.
+- The first live Library refresh completed on 2026-08-25 through a Core
+  machine-credential exchange and active `karmak` Library membership scoped to
+  `games/ttrpg`. TTRPG carries no Library browser session or bucket permission;
+  ordinary runtime remains offline against the atomically activated local
+  cache. The cross-service authority is defined by `QM-Code/kmqdb` in
+  `AGENTS/service-resource-grants.md`.
 - TTRPG is ruleset-neutral. Its Library membership scope is `games/ttrpg`;
   `pf2er` is only the first selected ruleset and must not be hard-coded as the
   identity, authorization, cache-root, or synchronization protocol boundary.
@@ -133,7 +133,7 @@ shell access; treat the authenticated greeting as a successful verification.
 - Portable retained product gate:
   `PYTHONDONTWRITEBYTECODE=1 python tests/product_gate.py all --quiet`.
 - Full live-cache gate: set `KMQDB_TTRPG_TEST_CACHE_DB` to an absolute cache
-  path and add `--require-live-cache`; this must run 196 tests with zero skips.
+  path and add `--require-live-cache`; this must run 197 tests with zero skips.
 - Application release boundary:
   `PYTHONDONTWRITEBYTECODE=1 python -m unittest -v tests.test_ttrpg_application_wheel`.
 - Semantic contract boundary:

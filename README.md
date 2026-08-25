@@ -10,14 +10,14 @@ entitlement after Library proves that platform. TTRPG will own its plans'
 local compiler, catalog, and browser capabilities, but will not create a
 separate payment customer or service-specific billing implementation.
 
-Subscription eligibility is not source-data authority. The current alpha-1
-cache is a sealed, operator-seeded snapshot and ordinary TTRPG operation has no
-live Library dependency or credential. Before the next refresh, the Library
-owner must grant the Core account `ttrpg` a reader membership scoped to
-`games/ttrpg`. TTRPG exchanges its Core-owned machine credential for a
-short-lived Library-audience identity assertion, then Library applies the
-membership and scope. TTRPG verifies and durably caches the selected ruleset's
-immutable generation; revocation affects only future refreshes. Library
+Subscription eligibility is not source-data authority. Core account `ttrpg`
+is an active reader of the `karmak` Library scoped to `games/ttrpg`. TTRPG
+exchanges its Core-owned machine credential for a short-lived
+Library-audience identity assertion, then Library applies that membership and
+scope. The first authenticated `pf2er` refresh completed on 2026-08-25 and
+atomically activated 140 sources, 1,977 sections, and 6,097 approved binary
+assets. Ordinary TTRPG operation uses only that local cache and has no live
+Library dependency; revocation affects only future refreshes. Library
 attributes storage and outgoing transfer to its owner regardless of the
 receiving system or destination, so there is no TTRPG-specific
 transfer-accounting protocol. PF2ER is the first selected ruleset, not the
@@ -54,8 +54,8 @@ sha256sum dist/application/kmqdb_ttrpg-0.1.0a1-py3-none-any.whl
 The expected application-wheel SHA-256 is
 `2a5ed3eee81bbdb3ab2587fb60c4fa7613eb6c5688292a70883244019496fc58`.
 
-The portable product gate runs 179 cases and records 17 exact environmental
-skips for source-cache integration. To run the complete 196-case gate without
+The portable product gate runs 180 cases and records 17 exact environmental
+skips for source-cache integration. To run the complete 197-case gate without
 skips, provide the operational cache explicitly:
 
 ```sh
@@ -71,6 +71,10 @@ canonical covers, semantic icons, and book-local resource images used by
 TTRPG. It does **not** copy original PDFs, high-resolution source material, or
 every page image. Library S3 remains authoritative for the complete source and
 media corpus.
+
+The active cache file is deployed as `0640 root:www-data`. The synchronizer
+creates a new cache with mode `0640` and preserves an existing cache's exact
+mode and ownership across its atomic replacement.
 
 The bounded local cache lets TTRPG serve its browser, compiler, and catalog
 while Library is unreachable. The standalone WSGI entrypoint therefore needs
