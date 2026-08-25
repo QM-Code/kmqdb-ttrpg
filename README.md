@@ -1,9 +1,22 @@
 # KMQDB TTRPG
 
 KMQDB TTRPG is the standalone TTRPG browser, rules-source, semantic-publication,
-and PF2E Remaster compiler service for KMQDB. It is independent of the KMQDB
-monorepo and installs beside the separately owned Core host and Gladiator game
-service.
+and PF2E Remaster compiler service for KMQDB. It is independent of
+`QM-Code/kmqdb` and installs beside the separately owned Core host and
+Gladiator game service.
+
+Future paid access will consume Core's generic service-scoped subscription
+entitlement after Library proves that platform. TTRPG will own its plans'
+local compiler, catalog, and browser capabilities, but will not create a
+separate payment customer or service-specific billing implementation.
+
+Subscription eligibility is not source-data authority. The current alpha-1
+cache is a sealed, operator-seeded snapshot and ordinary TTRPG operation has no
+live Library dependency or credential. Before the next refresh, the Library
+owner must grant the exact immutable generation through Core's generic
+cross-service identity contract. Library meters bytes actually transferred;
+TTRPG verifies and durably caches them, so cache hits create no repeated
+transfer cost and revocation affects only future retrieval.
 
 The repository also maintains Paizo Store image inventories for these game
 lines:
@@ -118,15 +131,20 @@ To create a small test inventory:
 python3 scripts/paizo_image_inventory.py --limit-products 5 --out data/inventory/paizo_digital_image_inventory_sample.csv
 ```
 
-To inventory images from a KMQDB `sources` API table, such as Pathfinder 1E
-source records that already have product URLs:
+The source records now belong to the private `karmak` Library at
+`lib.kmqdb.com`. Its current human/browser table route is, for example:
 
-```sh
-python3 scripts/paizo_image_inventory.py \
-  --source-api-url https://kmqdb.com/api/ttrpg/pf1e/sqlite/table/sources \
-  --verify-image-urls \
-  --out data/inventory/pf1e_source_image_inventory.csv
+```text
+https://lib.kmqdb.com/karmak/games/ttrpg/pf1e/.api/sqlite/table/sources
 ```
+
+Library rejects an unauthenticated request to that route. The inventory script
+does not perform Core SSO or accept a browser cookie, so do not point it at the
+production URL and expect an anonymous scrape. Its `--source-api-url` mode is
+for an explicitly authorized local/operator endpoint. The future production
+machine flow is an immutable, metered Library export grant, not direct reuse of
+this browser API. Never put a Library browser session in source control or
+shell history.
 
 `--verify-image-urls` keeps only rows whose thumbnail and full-size URLs return
 image content.

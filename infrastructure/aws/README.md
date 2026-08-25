@@ -59,9 +59,18 @@ The runtime artifact contains only exact deployment state:
 - semantic repository catalog digest `84e19dfa52236397ca7e837795908b11b72fe08d3b34ddabde2fda13bbabf6de`.
 
 The binary cache was materialized locally from exact approved `s3://kmqdb`
-bindings. AWS credentials are operator inputs and are never copied into the
-artifact or server. The complete 193-case live-cache gate and 147-case clean
-installed-wheel gate must both pass with zero skips before deployment.
+bindings before the generic cross-service grant protocol existed. It is a
+sealed operator-seeded artifact, not evidence of a live Library dependency.
+AWS and Library credentials are never copied into the artifact or server. The
+complete 193-case live-cache gate and 147-case clean installed-wheel gate must
+both pass with zero skips before deployment.
+
+Before a later cache refresh, Library must grant one immutable generation to
+TTRPG through Core's generic service-workload identity contract. Library is
+authoritative for exact delivered-byte accounting; TTRPG verifies the receipt
+and caches the generation on its retained volume. Normal browser/compiler
+requests use that local cache and incur no cross-service transfer. Revocation
+prevents another fetch but does not invalidate already cached bytes.
 
 ## Infrastructure workflow
 

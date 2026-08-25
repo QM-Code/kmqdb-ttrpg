@@ -20,15 +20,25 @@ Generated from `data/inventory/paizo_digital_image_inventory.csv`. The project c
 
 ## Source URL Image Lookup
 
-The KMQDB Pathfinder and Starfinder databases expose source/product records through:
+The KMQDB Pathfinder and Starfinder source/product records are owned by the
+private `karmak` Library at these current human/browser table routes:
 
 ```text
-https://kmqdb.com/api/ttrpg/pf1e/sqlite/table/sources
-https://kmqdb.com/api/ttrpg/pf2e/sqlite/table/sources
-https://kmqdb.com/api/ttrpg/pf2er/sqlite/table/sources
-https://kmqdb.com/api/ttrpg/sf1e/sqlite/table/sources
-https://kmqdb.com/api/ttrpg/sf2e/sqlite/table/sources
+https://lib.kmqdb.com/karmak/games/ttrpg/pf1e/.api/sqlite/table/sources
+https://lib.kmqdb.com/karmak/games/ttrpg/pf2e/.api/sqlite/table/sources
+https://lib.kmqdb.com/karmak/games/ttrpg/pf2er/.api/sqlite/table/sources
+https://lib.kmqdb.com/karmak/games/ttrpg/sf1e/.api/sqlite/table/sources
+https://lib.kmqdb.com/karmak/games/ttrpg/sf2e/.api/sqlite/table/sources
 ```
+
+Production requires an authenticated Library session and returns 403 to an
+anonymous request. `paizo_image_inventory.py` does not perform Core SSO or
+accept browser-session material. The command examples below therefore use an
+operator-supplied authorized endpoint, such as a bounded loopback service or
+test fixture; do not paste a production session cookie into a command or
+tracked file. The future production machine path is a Core-authenticated,
+owner-approved immutable Library export whose transferred bytes are metered
+once and cached by TTRPG, not anonymous access to these browser routes.
 
 Rows in that table include Paizo source URLs and existing image metadata in
 these columns:
@@ -45,7 +55,7 @@ Example command:
 
 ```sh
 python3 scripts/paizo_image_inventory.py \
-  --source-api-url https://kmqdb.com/api/ttrpg/pf1e/sqlite/table/sources \
+  --source-api-url "$AUTHORIZED_PF1E_SOURCES_URL" \
   --verify-image-urls \
   --out data/inventory/pf1e_source_image_inventory.csv
 ```
@@ -54,7 +64,7 @@ Use `--source-category` and `--source-brand` when scraping another ruleset:
 
 ```sh
 python3 scripts/paizo_image_inventory.py \
-  --source-api-url https://kmqdb.com/api/ttrpg/pf2e/sqlite/table/sources \
+  --source-api-url "$AUTHORIZED_PF2E_SOURCES_URL" \
   --source-category "Pathfinder 2E" \
   --source-brand "Pathfinder 2E" \
   --verify-image-urls \
