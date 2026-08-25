@@ -66,6 +66,17 @@ body-null rows. It remains a local cache, not a live object-store mount. The
 portable product gate runs 182 cases with 17 exact cache-dependent skips; the
 complete live-cache gate runs 199 cases with zero skips.
 
+The 2026-08-25 renderer refresh used reviewed operator source `01c6604` and
+atomically activated cache SHA-256
+`5a27f757d8098fc22cead911f5866f97d423097afd77db0c9bc756dbee1e8007`.
+That schema-3 cache is 422,338,560 bytes, contains 6,097 binary assets and
+364,702,456 embedded body bytes with zero null bodies, and binds source
+generation `fdb01435915f666d0d1dfb05748d7dcc481e383c562de304b91fd2b4f548f3e8`.
+Its presentation has exactly two scripts: the CSP-safe sealed-renderer
+interface and the reviewed digest-sealed PF2ER bundle. The immediate prior
+cache remains as the retained-volume hard-link
+`cache.db.pre-fff7f8e-sealed`.
+
 Subsequent refreshes use the generic Core-account and Library-membership
 boundary. The Core account `ttrpg` exchanges its service-bound machine
 credential for a short-lived Library-audience assertion. Library then verifies
