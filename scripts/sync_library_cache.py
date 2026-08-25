@@ -9,6 +9,7 @@ import math
 import os
 import re
 import sqlite3
+import stat
 import sys
 import tempfile
 import threading
@@ -1567,6 +1568,10 @@ def replace_cache(
 ) -> None:
     destination = destination.resolve()
     destination.parent.mkdir(parents=True, exist_ok=True, mode=0o755)
+    try:
+        destination_identity = destination.stat()
+    except FileNotFoundError:
+        destination_identity = None
     with tempfile.NamedTemporaryFile(
         prefix=f".{destination.name}.",
         suffix=".tmp",
@@ -1588,7 +1593,20 @@ def replace_cache(
             bucket=bucket,
             binary_assets=binary_assets,
         )
-        temporary.chmod(0o644)
+        if destination_identity is None:
+            temporary.chmod(0o640)
+        else:
+            temporary.chmod(stat.S_IMODE(destination_identity.st_mode))
+            temporary_identity = temporary.stat()
+            if (
+                temporary_identity.st_uid != destination_identity.st_uid
+                or temporary_identity.st_gid != destination_identity.st_gid
+            ):
+                os.chown(
+                    temporary,
+                    destination_identity.st_uid,
+                    destination_identity.st_gid,
+                )
         verify_final_bookshelf(client, generation, bookshelf)
         os.replace(temporary, destination)
     finally:

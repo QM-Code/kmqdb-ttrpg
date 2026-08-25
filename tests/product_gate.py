@@ -21,7 +21,7 @@ APPLICATION_MODULES = (
     ("test_backend.py", 21),
     ("test_backend_semantic_catalog_mount.py", 2),
     ("test_ttrpg_auth.py", 10),
-    ("test_sync_library_cache.py", 31),
+    ("test_sync_library_cache.py", 32),
     ("test_item_catalog.py", 10),
     ("test_ttrpg_game_ui_hardcut.py", 5),
     ("test_ttrpg_service_separation.py", 3),
@@ -63,10 +63,10 @@ GATES = {
 
 CACHE_ENVIRONMENT = "KMQDB_TTRPG_TEST_CACHE_DB"
 PORTABLE_EXPECTATIONS = {
-    "application": (174, 17),
+    "application": (175, 17),
     "installed": (130, 11),
     "semantic-contract": (5, 0),
-    "all": (179, 17),
+    "all": (180, 17),
 }
 
 

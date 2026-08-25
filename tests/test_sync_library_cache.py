@@ -6,6 +6,7 @@ import importlib.util
 import io
 import json
 import sqlite3
+import stat
 import sys
 import tempfile
 import unittest
@@ -2035,6 +2036,15 @@ class CacheSyncTests(unittest.TestCase):
                 list(cache.parent.glob(f".{cache.name}.*.tmp")),
                 [],
             )
+
+    def test_replacement_preserves_deployed_cache_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            cache = Path(directory) / "cache.db"
+            verified_replace(cache, cache_values())
+            self.assertEqual(stat.S_IMODE(cache.stat().st_mode), 0o640)
+            cache.chmod(0o640)
+            verified_replace(cache, cache_values())
+            self.assertEqual(stat.S_IMODE(cache.stat().st_mode), 0o640)
 
     def test_snapshot_remains_private_to_its_singleton_table(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
