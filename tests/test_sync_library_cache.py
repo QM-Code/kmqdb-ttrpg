@@ -190,6 +190,7 @@ class CacheSyncTests(unittest.TestCase):
                     raise AssertionError(accept)
 
         interface = (
+            b"// KMQDB_SEALED_RENDERER_INTERFACE_V1\n"
             b"globalThis.KMQDB_REGISTER_SEALED_RENDERER = () => {};"
         )
         bundle = b"// KMQDB_SEALED_RENDERER_BUNDLE_V1\n"
