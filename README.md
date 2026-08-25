@@ -54,8 +54,8 @@ sha256sum dist/application/kmqdb_ttrpg-0.1.0a3-py3-none-any.whl
 The expected application-wheel SHA-256 is
 `e2d97f8e63899bdd8fb19140887efe2099c738de51048a8549149277763f1301`.
 
-The portable product gate runs 181 cases and records 17 exact environmental
-skips for source-cache integration. To run the complete 198-case gate without
+The portable product gate runs 182 cases and records 17 exact environmental
+skips for source-cache integration. To run the complete 199-case gate without
 skips, provide the operational cache explicitly:
 
 ```sh
@@ -90,6 +90,12 @@ inject the narrow asset-stream port for body-null cache rows. If measured
 local-volume or snapshot cost later becomes material, the reproducible media
 cache may move to a TTRPG-owned S3 bucket excluded from nightly backups without
 changing Library authority or the verified-generation contract.
+
+Executable presentation is a reviewed service artifact rather than imported
+tenant content. A refresh with a non-empty renderer requires exactly one
+Library interface script and one digest-sealed renderer bundle, caches both as
+same-origin assets, and rejects dynamic code evaluation. The production CSP
+does not permit `unsafe-eval`.
 
 The synchronizer is ruleset-neutral. A production refresh reads a
 service-bound Core machine credential from a mode-0600 file, exchanges it for

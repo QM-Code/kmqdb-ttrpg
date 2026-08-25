@@ -149,6 +149,69 @@ def snapshot_payload(cache: Path) -> tuple[str, dict]:
 
 
 class CacheSyncTests(unittest.TestCase):
+    def test_presentation_requires_one_csp_safe_sealed_renderer_bundle(self) -> None:
+        class Response:
+            def __init__(self, body: bytes) -> None:
+                self.body = body
+                self.content_type = "application/javascript; charset=utf-8"
+
+        class Client:
+            origin = "https://lib.kmqdb.com"
+
+            def __init__(self, scripts: list[bytes]) -> None:
+                self.scripts = scripts
+
+            def get_json(self, operation: str) -> dict:
+                self.assert_operation(operation)
+                return {
+                    "presentation": {
+                        "vocabulary": {},
+                        "renderer": "return {};",
+                        "stylesheets": [],
+                        "scripts": [
+                            {"index": index} for index in range(len(self.scripts))
+                        ],
+                    }
+                }
+
+            @staticmethod
+            def assert_operation(operation: str) -> None:
+                if operation != "source-presentation":
+                    raise AssertionError(operation)
+
+            def get(self, operation: str, *, params: dict, accept: str) -> Response:
+                self.assert_operation(operation)
+                self.assertTrueJavascript(accept)
+                return Response(self.scripts[int(params["index"])])
+
+            @staticmethod
+            def assertTrueJavascript(accept: str) -> None:
+                if "javascript" not in accept:
+                    raise AssertionError(accept)
+
+        interface = (
+            b"globalThis.KMQDB_REGISTER_SEALED_RENDERER = () => {};"
+        )
+        bundle = b"// KMQDB_SEALED_RENDERER_BUNDLE_V1\n"
+        presentation, assets = sync.fetch_presentation(
+            Client([interface, bundle])
+        )
+        self.assertEqual(presentation["renderer"], "return {};")
+        self.assertEqual(set(assets), {("js", 0), ("js", 1)})
+
+        with self.assertRaisesRegex(
+            sync.SyncFailure,
+            "dynamic code evaluation",
+        ):
+            sync.fetch_presentation(
+                Client([interface + b"\nFunction('return 1')();", bundle])
+            )
+        with self.assertRaisesRegex(
+            sync.SyncFailure,
+            "one sealed renderer interface and bundle",
+        ):
+            sync.fetch_presentation(Client([interface]))
+
     def test_ruleset_selection_is_below_generic_ttrpg_membership_scope(self) -> None:
         previous = (
             sync.LIBRARY_SLUG,

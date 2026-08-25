@@ -71,6 +71,8 @@ MAX_CORE_TOKEN_RESPONSE_BYTES = 64 * 1024
 GENERATION_BOUND_OPERATIONS = frozenset(
     {"bookshelf", "source-publication", "source-sections"}
 )
+SEALED_RENDERER_INTERFACE_MARKER = "KMQDB_REGISTER_SEALED_RENDERER"
+SEALED_RENDERER_BUNDLE_MARKER = "KMQDB_SEALED_RENDERER_BUNDLE_V1"
 SCHEMA_SQL = f"""
 PRAGMA user_version = {CACHE_SCHEMA_VERSION};
 CREATE TABLE metadata (
@@ -1319,6 +1321,7 @@ def fetch_presentation(client: LibraryClient) -> tuple[dict, dict[tuple[str, int
         raise SyncFailure("source-presentation returned the wrong manifest shape")
     presentation = normalize_cached_value(presentation, client.origin)
     assets: dict[tuple[str, int], BinaryPayload] = {}
+    script_texts: list[str] = []
     for kind, field, accept in (
         ("css", "stylesheets", "text/css"),
         ("js", "scripts", "application/javascript, text/javascript"),
@@ -1342,10 +1345,31 @@ def fetch_presentation(client: LibraryClient) -> tuple[dict, dict[tuple[str, int
                 raise SyncFailure(f"source-presentation {kind}/{index} is not UTF-8") from failure
             if kind == "css":
                 text = CSS_IMPORT_RE.sub("", text)
+            else:
+                script_texts.append(text)
             content_type = response.content_type
             if "charset=" not in content_type.lower():
                 content_type = f"{content_type.split(';', 1)[0]}; charset=utf-8"
             assets[(kind, index)] = BinaryPayload(text.encode("utf-8"), content_type)
+    if str(presentation.get("renderer") or ""):
+        interfaces = [
+            text
+            for text in script_texts
+            if SEALED_RENDERER_INTERFACE_MARKER in text
+        ]
+        bundles = [
+            text
+            for text in script_texts
+            if SEALED_RENDERER_BUNDLE_MARKER in text
+        ]
+        if len(interfaces) != 1 or len(bundles) != 1:
+            raise SyncFailure(
+                "source-presentation does not provide one sealed renderer interface and bundle"
+            )
+        if "Function(" in interfaces[0]:
+            raise SyncFailure(
+                "source-presentation renderer interface uses dynamic code evaluation"
+            )
     return presentation, assets
 
 

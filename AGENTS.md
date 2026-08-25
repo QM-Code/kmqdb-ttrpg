@@ -96,6 +96,12 @@ shell access; treat the authenticated greeting as a successful verification.
   cost becomes material, it may move to a TTRPG-owned S3 cache excluded from
   nightly retained-volume backups; that is a storage optimization, not a
   change in publication authority.
+- Presentation JavaScript must arrive as one reviewed Library renderer
+  interface plus one digest-sealed same-origin bundle. The synchronizer rejects
+  a missing bundle or a renderer interface that uses dynamic evaluation.
+  Production CSP stays strict and never gains `unsafe-eval`; renderer drift is
+  resolved by reviewing and resealing the Library profile, not by weakening the
+  browser boundary.
 - Build a deployment semantic repository from reviewed package/asset bundles
   with `scripts/build_semantic_repository.py`. Deploy only the resulting
   digest-named immutable repository; never bundle provider source trees or
@@ -136,7 +142,7 @@ shell access; treat the authenticated greeting as a successful verification.
 - Portable retained product gate:
   `PYTHONDONTWRITEBYTECODE=1 python tests/product_gate.py all --quiet`.
 - Full live-cache gate: set `KMQDB_TTRPG_TEST_CACHE_DB` to an absolute cache
-  path and add `--require-live-cache`; this must run 198 tests with zero skips.
+  path and add `--require-live-cache`; this must run 199 tests with zero skips.
 - Application release boundary:
   `PYTHONDONTWRITEBYTECODE=1 python -m unittest -v tests.test_ttrpg_application_wheel`.
 - Semantic contract boundary:

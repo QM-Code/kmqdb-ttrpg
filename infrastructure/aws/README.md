@@ -63,8 +63,8 @@ The binary cache was initially materialized locally from exact approved
 server. The active cache was subsequently replaced through the authenticated
 Library membership flow and now contains 6,097 approved binary assets with no
 body-null rows. It remains a local cache, not a live object-store mount. The
-portable product gate runs 181 cases with 17 exact cache-dependent skips; the
-complete live-cache gate runs 198 cases with zero skips.
+portable product gate runs 182 cases with 17 exact cache-dependent skips; the
+complete live-cache gate runs 199 cases with zero skips.
 
 Subsequent refreshes use the generic Core-account and Library-membership
 boundary. The Core account `ttrpg` exchanges its service-bound machine
