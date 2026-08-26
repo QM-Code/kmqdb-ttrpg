@@ -33,14 +33,26 @@ CACHE_DB = Path(
         TTRPG_ROOT / "cache" / "cache.db",
     )
 ).expanduser()
+PRESENTATION_CACHE_DB = Path(
+    os.environ.get(
+        "KMQDB_TTRPG_TEST_PRESENTATION_CACHE_DB",
+        TTRPG_ROOT / "cache" / "presentation-cache.db",
+    )
+).expanduser()
 PORTRAIT_ROOT = Path(
     os.environ.get(
         "KMQDB_TTRPG_TEST_PORTRAIT_ROOT",
         TTRPG_ROOT / "cache" / "legacy-roster-portraits",
     )
 ).expanduser()
+LIBRARY_ASSET_ROOT = Path(
+    os.environ.get(
+        "KMQDB_TTRPG_TEST_LIBRARY_ASSET_ROOT",
+        TTRPG_ROOT / "cache" / "library-source-assets",
+    )
+).expanduser()
 EXPECTED_PACKAGE_DIGEST = (
-    "67656d2a81246a96de022f1019e53e1b3dd751a4f9c499fef16d26929f353232"
+    "5e2f107daf71496355043e6814dc7a50801649d20cc74b7b4390bdcc7c7d5de0"
 )
 
 
@@ -97,9 +109,12 @@ class PF2ERLegacyRosterTargetTests(unittest.TestCase):
 
 
 @unittest.skipUnless(
-    CACHE_DB.is_file() and PORTRAIT_ROOT.is_dir(),
-    "live cache/portraits unavailable; set KMQDB_TTRPG_TEST_CACHE_DB and "
-    "KMQDB_TTRPG_TEST_PORTRAIT_ROOT",
+    CACHE_DB.is_file()
+    and PRESENTATION_CACHE_DB.is_file()
+    and PORTRAIT_ROOT.is_dir()
+    and LIBRARY_ASSET_ROOT.is_dir(),
+    "live cache/portraits/source assets unavailable; set the three "
+    "KMQDB_TTRPG_TEST_* roots",
 )
 class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
     @classmethod
@@ -117,12 +132,39 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
             cls.portrait_artifacts,
             cls.portrait_manifest,
         ) = roster_publication._portrait_inventory(PORTRAIT_ROOT)
+        presentation_targets = [
+            (target.entity_id, target.name, target.current_locator)
+            for target in roster_semantic.PF2ER_LEGACY_ROSTER_TARGETS
+        ]
+        presentation_targets.extend(
+            (
+                entity_id,
+                roster_publication.REVIEWED_PORTRAIT_NAMES[entity_id],
+                locator,
+            )
+            for entity_id, locator in sorted(
+                roster_publication.REVIEWED_SOURCE_LOCATORS.items()
+            )
+        )
+        (
+            cls.source_presentations,
+            cls.source_presentation_artifacts,
+            cls.source_presentation_audit,
+        ) = roster_publication.build_roster_source_presentations(
+            cache_path=PRESENTATION_CACHE_DB,
+            targets=presentation_targets,
+            library_asset_root=LIBRARY_ASSET_ROOT,
+        )
         cls.package = roster_semantic.build_legacy_roster_semantic_package(
             authority=cls.authority,
             compiler_set=cls.compiler,
             evidence_store=cls.evidence,
             portrait_asset_refs={
                 target.entity_id: cls.portrait_refs[target.entity_id]
+                for target in roster_semantic.PF2ER_LEGACY_ROSTER_TARGETS
+            },
+            source_presentations={
+                target.entity_id: cls.source_presentations[target.entity_id]
                 for target in roster_semantic.PF2ER_LEGACY_ROSTER_TARGETS
             },
         )
@@ -189,28 +231,25 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
                 self.assertTrue(definition["unsupportedMechanics"])
                 self.assertEqual(public_definition_acquisition_paths(definition), ())
                 self.assertEqual(entity.required_capabilities, ())
-                self.assertEqual(len(entity.asset_refs), 2)
+                presentation = definition["presentation"]
                 self.assertEqual(
-                    definition["presentation"],
-                    {
-                        "iconAssetId": (
-                            roster_semantic.pf2er_roster_portrait_asset_id(
-                                entity.entity_id,
-                                "x128",
-                            )
-                        ),
-                        "viewerAssetId": (
-                            roster_semantic.pf2er_roster_portrait_asset_id(
-                                entity.entity_id,
-                                "x512",
-                            )
-                        ),
-                    },
+                    presentation["iconAssetId"],
+                    roster_semantic.pf2er_roster_portrait_asset_id(
+                        entity.entity_id, "x128"
+                    ),
                 )
                 self.assertEqual(
-                    {item.asset_id for item in entity.asset_refs},
-                    set(definition["presentation"].values()),
+                    presentation["viewerAssetId"],
+                    roster_semantic.pf2er_roster_portrait_asset_id(
+                        entity.entity_id, "x512"
+                    ),
                 )
+                source_view = presentation["sourceNodeView"]
+                self.assertEqual(source_view["schema"], 1)
+                asset_ids = {item.asset_id for item in entity.asset_refs}
+                self.assertIn(source_view["packetAssetId"], asset_ids)
+                self.assertIn(source_view["closureManifestAssetId"], asset_ids)
+                self.assertLess(len(entity.asset_refs), 100)
                 self.assertEqual(
                     definition["publication"]["presentationAsset"],
                     "published",
@@ -240,6 +279,49 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
             188,
         )
 
+    def test_source_node_view_preserves_complete_war_chanter_presentation(self) -> None:
+        import json
+
+        publication = self.source_presentations["pf2er:goblin-war-chanter"]
+        artifacts = {
+            artifact.asset_ref: artifact
+            for artifact in self.source_presentation_artifacts
+        }
+        packet = json.loads(
+            artifacts[publication.packet_ref].asset_bytes.decode("utf-8")
+        )
+        content = packet["content"]["section"]["content"]
+        for exact_source_field in (
+            '"Items"',
+            '"Melee"',
+            '"Ranged"',
+            '"Spellcasting"',
+            '"!.Goblin Scuttle"',
+            '"!.Goblin Song"',
+        ):
+            self.assertIn(exact_source_field, content)
+        closure = json.loads(
+            artifacts[publication.closure_manifest_ref].asset_bytes.decode("utf-8")
+        )
+        self.assertEqual(closure["unavailableMediaReferences"], [])
+        self.assertEqual(
+            [item["role"] for item in closure["presentation"]["scripts"]],
+            ["renderer-interface", "sealed-renderer-bundle"],
+        )
+        references = {item["reference"] for item in closure["mediaBindings"]}
+        self.assertIn(
+            "core/mc1/creatures/x128/Goblin War Chanter", references
+        )
+        self.assertIn(
+            "core/mc1/creatures/x256/Goblin War Chanter", references
+        )
+        self.assertIn("core/pc1/actions/Single Action", references)
+        self.assertIn("core/pc1/actions/Reaction", references)
+        self.assertEqual(self.source_presentation_audit["targetCount"], 94)
+        self.assertEqual(
+            self.source_presentation_audit["unavailableMediaReferences"], []
+        )
+
     def test_generic_description_handles_one_broader_family_heading(self) -> None:
         description = source_creature_description(
             self.authority,
@@ -267,6 +349,10 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
                 compiler_set=self.compiler,
                 evidence_store=SemanticEvidenceStore(),
                 portrait_asset_refs=refs,
+                source_presentations={
+                    target.entity_id: self.source_presentations[target.entity_id]
+                    for target in roster_semantic.PF2ER_LEGACY_ROSTER_TARGETS
+                },
             )
 
     def test_private_evidence_reconnects_every_target_without_public_leakage(self) -> None:
@@ -308,6 +394,10 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
                         target.entity_id: self.portrait_refs[target.entity_id]
                         for target in roster_semantic.PF2ER_LEGACY_ROSTER_TARGETS
                     },
+                    source_presentations={
+                        target.entity_id: self.source_presentations[target.entity_id]
+                        for target in roster_semantic.PF2ER_LEGACY_ROSTER_TARGETS
+                    },
                 )
 
         wrong = build_pf2er_semantic_compiler_set()
@@ -321,6 +411,10 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
                 evidence_store=SemanticEvidenceStore(),
                 portrait_asset_refs={
                     target.entity_id: self.portrait_refs[target.entity_id]
+                    for target in roster_semantic.PF2ER_LEGACY_ROSTER_TARGETS
+                },
+                source_presentations={
+                    target.entity_id: self.source_presentations[target.entity_id]
                     for target in roster_semantic.PF2ER_LEGACY_ROSTER_TARGETS
                 },
             )

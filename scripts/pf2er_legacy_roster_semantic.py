@@ -6,8 +6,9 @@ current Gladiator runtime.  This package therefore publishes only inert,
 source-free creature identity and descriptive/statistical fields.  Every entity
 is explicitly runtime-blocked and carries no inventory, strikes, or abilities.
 Each entity carries exact generic source prose, one bounded opaque x128
-thumbnail, and one opaque x512 viewer portrait for direct stable display.  It
-is suitable for durable stable persistence and display, never for encounter
+thumbnail, one opaque x512 viewer portrait, and an exact content-addressed
+offline closure of the existing source-node presentation packet.  It is
+suitable for durable stable persistence and display, never for encounter
 admission.
 
 Hadrosaurid, Viper, and Xulgath Warrior are intentionally absent.  Their
@@ -21,6 +22,7 @@ import hmac
 from types import MappingProxyType
 from typing import Any, Mapping
 
+from scripts.pf2er_roster_source_presentation import RosterSourcePresentation
 from subdomains.ttrpg.pf2er_compiler.mechanics.source_authority import (
     SourceAuthorityAdapter,
 )
@@ -49,9 +51,9 @@ from subdomains.ttrpg.pf2er_semantic import (
 PF2ER_LEGACY_ROSTER_PACKAGE_ID = (
     "ttrpg:pf2er-monster-core-one-legacy-roster"
 )
-PF2ER_LEGACY_ROSTER_PACKAGE_VERSION = "1.2.0"
+PF2ER_LEGACY_ROSTER_PACKAGE_VERSION = "1.3.0"
 PF2ER_LEGACY_ROSTER_SEMANTIC_GENERATION = (
-    "ttrpg:pf2er-monster-core-one-legacy-roster-publication-3"
+    "ttrpg:pf2er-monster-core-one-legacy-roster-publication-4"
 )
 PF2ER_LEGACY_ROSTER_EVIDENCE_AUTHORITY_ID = (
     "ttrpg:pf2er-legacy-roster-semantic-evidence"
@@ -59,7 +61,7 @@ PF2ER_LEGACY_ROSTER_EVIDENCE_AUTHORITY_ID = (
 PF2ER_LEGACY_ROSTER_PROJECTION_ID = (
     "ttrpg:pf2er-legacy-roster-persistence-definition"
 )
-PF2ER_LEGACY_ROSTER_PROJECTION_VERSION = "3.0.0"
+PF2ER_LEGACY_ROSTER_PROJECTION_VERSION = "4.0.0"
 PF2ER_LEGACY_ROSTER_SOURCE_ID = "core-mc1"
 PF2ER_LEGACY_ROSTER_THUMBNAIL_TIER = "x128"
 PF2ER_LEGACY_ROSTER_VIEWER_TIER = "x512"
@@ -101,9 +103,10 @@ _PROJECTION_MANIFEST = {
     "entityKind": "ttrpg:creature",
     "executionPolicy": "persistence-only-runtime-blocked",
     "presentationPolicy": {
-        "kind": "opaque-direct-use-thumbnail-and-viewer-portrait",
+        "kind": "opaque-portraits-and-exact-source-node-view",
         "thumbnailTier": PF2ER_LEGACY_ROSTER_THUMBNAIL_TIER,
         "viewerTier": PF2ER_LEGACY_ROSTER_VIEWER_TIER,
+        "sourceNodeView": "exact-packet-and-content-addressed-offline-closure-v1",
     },
     "descriptionPolicy": "exact-generic-source-prose",
 }
@@ -287,6 +290,7 @@ def _project_persistence_definition(
     raw_definition: dict[str, object],
     target: LegacyRosterTarget,
     description: str,
+    source_presentation: RosterSourcePresentation,
 ) -> dict[str, object]:
     raw = _object(raw_definition, "legacy roster compiler definition")
     if raw.get("schema") != 1 or raw.get("name") != target.name:
@@ -369,6 +373,7 @@ def _project_persistence_definition(
         "presentation": {
             "iconAssetId": target.thumbnail_asset_id,
             "viewerAssetId": target.viewer_asset_id,
+            "sourceNodeView": source_presentation.envelope,
         },
     }
     for key in ("size",):
@@ -431,6 +436,7 @@ def build_legacy_roster_semantic_package(
     compiler_set: SemanticCompilerSet,
     evidence_store: SemanticEvidenceStore,
     portrait_asset_refs: Mapping[str, tuple[AssetRef, AssetRef]],
+    source_presentations: Mapping[str, RosterSourcePresentation],
 ) -> SemanticPackage:
     """Compile the exact 91-entity persistence-only roster package."""
 
@@ -442,6 +448,8 @@ def build_legacy_roster_semantic_package(
         raise TypeError("legacy roster semantics require SemanticEvidenceStore")
     if not isinstance(portrait_asset_refs, Mapping):
         raise TypeError("legacy roster semantics require portrait asset references")
+    if not isinstance(source_presentations, Mapping):
+        raise TypeError("legacy roster semantics require source presentations")
     expected_portrait_ids = {
         target.entity_id for target in PF2ER_LEGACY_ROSTER_TARGETS
     }
@@ -451,6 +459,13 @@ def build_legacy_roster_semantic_package(
             "legacy roster portrait reference census changed; "
             f"missing={sorted(expected_portrait_ids - actual_portrait_ids)}, "
             f"extra={sorted(actual_portrait_ids - expected_portrait_ids)}"
+        )
+    actual_presentation_ids = set(source_presentations)
+    if actual_presentation_ids != expected_portrait_ids:
+        raise PF2ERLegacyRosterSemanticError(
+            "legacy roster source presentation census changed; "
+            f"missing={sorted(expected_portrait_ids - actual_presentation_ids)}, "
+            f"extra={sorted(actual_presentation_ids - expected_portrait_ids)}"
         )
     for target in PF2ER_LEGACY_ROSTER_TARGETS:
         portrait_refs = portrait_asset_refs[target.entity_id]
@@ -469,6 +484,11 @@ def build_legacy_roster_semantic_package(
         if tuple(item.asset_id for item in portrait_refs) != expected_asset_ids:
             raise PF2ERLegacyRosterSemanticError(
                 f"legacy roster portrait asset IDs drifted: {target.entity_id}"
+            )
+        presentation = source_presentations[target.entity_id]
+        if not isinstance(presentation, RosterSourcePresentation):
+            raise PF2ERLegacyRosterSemanticError(
+                f"legacy roster source presentation is invalid: {target.entity_id}"
             )
     if authority.allowed_source_ids != _EXPECTED_AUTHORITY_SCOPE:
         raise PF2ERLegacyRosterSemanticError(
@@ -523,6 +543,7 @@ def build_legacy_roster_semantic_package(
             raw_definition,
             target,
             description,
+            source_presentations[target.entity_id],
         )
         definition_digest = canonical_digest(
             definition,
@@ -553,6 +574,14 @@ def build_legacy_roster_semantic_package(
                     description,
                     "legacy roster generic description",
                 ),
+                "sourceNodePacketAssetRef": (
+                    source_presentations[target.entity_id].packet_ref.to_dict()
+                ),
+                "sourceNodeClosureManifestAssetRef": (
+                    source_presentations[
+                        target.entity_id
+                    ].closure_manifest_ref.to_dict()
+                ),
                 "executableFieldCounts": {
                     field: len(raw_definition[field])
                     for field in _EXECUTABLE_MARKERS
@@ -572,7 +601,14 @@ def build_legacy_roster_semantic_package(
                 projection_id=PF2ER_LEGACY_ROSTER_PROJECTION_ID,
                 projection_version=PF2ER_LEGACY_ROSTER_PROJECTION_VERSION,
                 projection_digest=PF2ER_LEGACY_ROSTER_PROJECTION_DIGEST,
-                asset_refs=portrait_asset_refs[target.entity_id],
+                asset_refs=tuple(
+                    sorted(
+                        {
+                            *portrait_asset_refs[target.entity_id],
+                            *source_presentations[target.entity_id].asset_refs,
+                        }
+                    )
+                ),
             )
         )
 

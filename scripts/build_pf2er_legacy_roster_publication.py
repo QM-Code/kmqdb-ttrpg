@@ -31,6 +31,10 @@ from scripts.pf2er_legacy_roster_semantic import (
     build_legacy_roster_semantic_package,
     pf2er_roster_portrait_asset_id,
 )
+from scripts.pf2er_roster_source_presentation import (
+    RosterSourcePresentation,
+    build_roster_source_presentations,
+)
 from subdomains.ttrpg.semantic_assets import (
     SemanticAssetArtifact,
     TtrpgSemanticAssetStore,
@@ -59,7 +63,7 @@ ROSTER_PORTRAIT_MANIFEST_DIGEST = (
 REVIEWED_PRESENTATION_PROJECTION_ID = (
     "ttrpg:pf2er-reviewed-creature-roster-presentation"
 )
-REVIEWED_PRESENTATION_PROJECTION_VERSION = "2.0.0"
+REVIEWED_PRESENTATION_PROJECTION_VERSION = "3.0.0"
 REVIEWED_PRESENTATION_EVIDENCE_AUTHORITY_ID = (
     "ttrpg:pf2er-reviewed-roster-presentation-evidence"
 )
@@ -69,9 +73,10 @@ _REVIEWED_PRESENTATION_PROJECTION_MANIFEST = {
     "projectionVersion": REVIEWED_PRESENTATION_PROJECTION_VERSION,
     "kind": "reviewed-creature-description-and-presentation-augmentation",
     "presentationPolicy": {
-        "kind": "opaque-direct-use-thumbnail-and-viewer-portrait",
+        "kind": "opaque-portraits-and-exact-source-node-view",
         "thumbnailTier": PF2ER_LEGACY_ROSTER_THUMBNAIL_TIER,
         "viewerTier": PF2ER_LEGACY_ROSTER_VIEWER_TIER,
+        "sourceNodeView": "exact-packet-and-content-addressed-offline-closure-v1",
     },
     "descriptionPolicy": "exact-generic-source-prose",
     "mechanicsPolicy": "preserve-exactly",
@@ -268,6 +273,7 @@ def _augment_reviewed_presentation(
     description: str,
     source_languages: list[str],
     portrait_refs: tuple[AssetRef, AssetRef],
+    source_presentation: RosterSourcePresentation,
     evidence_store: SemanticEvidenceStore,
 ) -> SemanticPackage:
     """Add only authenticated prose and portraits to a reviewed creature."""
@@ -287,6 +293,10 @@ def _augment_reviewed_presentation(
         raise LegacyRosterPublicationError(
             f"reviewed creature portrait closure is invalid: {entity_id}"
         )
+    if not isinstance(source_presentation, RosterSourcePresentation):
+        raise LegacyRosterPublicationError(
+            f"reviewed creature source presentation is invalid: {entity_id}"
+        )
     source_selection = authority.validate_selection(
         authority.resolve(
             authority.address(
@@ -305,6 +315,7 @@ def _augment_reviewed_presentation(
     definition["presentation"] = {
         "iconAssetId": portrait_refs[0].asset_id,
         "viewerAssetId": portrait_refs[1].asset_id,
+        "sourceNodeView": source_presentation.envelope,
     }
     raw_definition_digest = canonical_digest(
         {
@@ -339,6 +350,10 @@ def _augment_reviewed_presentation(
             ),
             "currentSelection": source_selection.receipt.as_serialized(),
             "portraitAssetRefs": [item.to_dict() for item in portrait_refs],
+            "sourceNodePacketAssetRef": source_presentation.packet_ref.to_dict(),
+            "sourceNodeClosureManifestAssetRef": (
+                source_presentation.closure_manifest_ref.to_dict()
+            ),
         },
         compiler_receipt={
             "schema": 1,
@@ -365,13 +380,15 @@ def _augment_reviewed_presentation(
         projection_version=REVIEWED_PRESENTATION_PROJECTION_VERSION,
         projection_digest=REVIEWED_PRESENTATION_PROJECTION_DIGEST,
         required_capabilities=base_entity.required_capabilities,
-        asset_refs=portrait_refs,
+        asset_refs=tuple(
+            sorted({*portrait_refs, *source_presentation.asset_refs})
+        ),
     )
     entities = tuple(
         augmented_entity if entity.entity_id == entity_id else entity
         for entity in package.entities
     )
-    semantic_generation = f"{package.semantic_generation}-roster-presentation-2"
+    semantic_generation = f"{package.semantic_generation}-roster-presentation-3"
     semantic_generation_digest = canonical_digest(
         {
             "schema": 1,
@@ -384,12 +401,16 @@ def _augment_reviewed_presentation(
                 "reviewed creature generic description",
             ),
             "portraitAssetRefs": [item.to_dict() for item in portrait_refs],
+            "sourceNodePacketAssetRef": source_presentation.packet_ref.to_dict(),
+            "sourceNodeClosureManifestAssetRef": (
+                source_presentation.closure_manifest_ref.to_dict()
+            ),
         },
         "reviewed creature presentation semantic generation",
     )
     augmented_package = build_semantic_package(
         package_id=package.package_id,
-        version="1.2.0",
+        version="1.3.0",
         ruleset_id=package.ruleset_id,
         ruleset_digest=package.ruleset_digest,
         book_id=package.book_id,
@@ -666,9 +687,11 @@ def main() -> int:
         description="Build the deterministic PF2ER legacy-roster publication."
     )
     parser.add_argument("--cache-db", type=Path, required=True)
+    parser.add_argument("--presentation-cache-db", type=Path, required=True)
     parser.add_argument("--legacy-world-db", type=Path, required=True)
     parser.add_argument("--base-package-dir", type=Path, required=True)
     parser.add_argument("--portrait-root", type=Path, required=True)
+    parser.add_argument("--library-asset-root", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
 
@@ -685,6 +708,25 @@ def main() -> int:
     base_packages = _load_base_packages(args.base_package_dir)
     portrait_refs, portrait_artifacts, portrait_manifest = (
         _portrait_inventory(args.portrait_root)
+    )
+    presentation_targets = [
+        (target.entity_id, target.name, target.current_locator)
+        for target in PF2ER_LEGACY_ROSTER_TARGETS
+    ]
+    presentation_targets.extend(
+        (
+            entity_id,
+            REVIEWED_PORTRAIT_NAMES[entity_id],
+            locator,
+        )
+        for entity_id, locator in sorted(REVIEWED_SOURCE_LOCATORS.items())
+    )
+    source_presentations, source_presentation_artifacts, source_presentation_audit = (
+        build_roster_source_presentations(
+            cache_path=args.presentation_cache_db,
+            targets=presentation_targets,
+            library_asset_root=args.library_asset_root,
+        )
     )
     store = SourceAuthorityStore.from_path(args.cache_db)
     authority = store.adapter_for(("core-gmc", "core-mc1", "core-pc1"))
@@ -729,6 +771,7 @@ def main() -> int:
                 ),
                 source_languages=source_definition["languages"],
                 portrait_refs=portrait_refs[entity_id],
+                source_presentation=source_presentations[entity_id],
                 evidence_store=evidence_store,
             )
         augmented_base_packages.append(package)
@@ -739,6 +782,10 @@ def main() -> int:
         evidence_store=evidence_store,
         portrait_asset_refs={
             target.entity_id: portrait_refs[target.entity_id]
+            for target in PF2ER_LEGACY_ROSTER_TARGETS
+        },
+        source_presentations={
+            target.entity_id: source_presentations[target.entity_id]
             for target in PF2ER_LEGACY_ROSTER_TARGETS
         },
     )
@@ -766,6 +813,7 @@ def main() -> int:
         ),
         source_languages=xulgath_source_definition["languages"],
         portrait_refs=portrait_refs[xulgath_entity_id],
+        source_presentation=source_presentations[xulgath_entity_id],
         evidence_store=evidence_store,
     )
     packages = (*base_packages, legacy_package, xulgath_package)
@@ -776,6 +824,7 @@ def main() -> int:
         packages,
         portrait_manifest,
     )
+    audit["sourcePresentation"] = source_presentation_audit
 
     package_asset_refs = tuple(
         sorted(
@@ -787,15 +836,16 @@ def main() -> int:
             }
         )
     )
+    all_artifacts = (*portrait_artifacts, *source_presentation_artifacts)
     expected_asset_refs = tuple(
-        sorted(artifact.asset_ref for artifact in portrait_artifacts)
+        sorted({artifact.asset_ref for artifact in all_artifacts})
     )
     if package_asset_refs != expected_asset_refs:
         raise LegacyRosterPublicationError(
-            "semantic package portrait references do not have exact asset closure"
+            "semantic packages do not have exact presentation asset closure"
         )
     asset_store = TtrpgSemanticAssetStore()
-    asset_store.publish(portrait_artifacts)
+    asset_store.publish(tuple(all_artifacts))
     asset_snapshot = asset_store.open_snapshot(expected_asset_refs)
 
     for package in packages:
@@ -805,7 +855,7 @@ def main() -> int:
     (asset_directory / "index.json").write_bytes(
         canonical_json(asset_snapshot.inventory_projection())
     )
-    for artifact in portrait_artifacts:
+    for artifact in all_artifacts:
         (blob_directory / artifact.asset_ref.asset_digest).write_bytes(
             artifact.asset_bytes
         )
@@ -823,6 +873,9 @@ def main() -> int:
     )
     (args.output_dir / "portrait-manifest.json").write_bytes(
         canonical_json(portrait_manifest)
+    )
+    (args.output_dir / "source-presentation-audit.json").write_bytes(
+        canonical_json(source_presentation_audit)
     )
 
     outputs = []
@@ -851,6 +904,10 @@ def main() -> int:
                 ),
                 "portraitManifestDigest": ROSTER_PORTRAIT_MANIFEST_DIGEST,
                 "assetSnapshotDigest": asset_snapshot.snapshot_digest,
+                "sourcePresentationAssetCount": len(source_presentation_artifacts),
+                "sourcePresentationBytes": sum(
+                    artifact.size for artifact in source_presentation_artifacts
+                ),
                 "omissionCount": 0,
                 "outputs": outputs,
             }
