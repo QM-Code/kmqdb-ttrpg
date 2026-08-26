@@ -269,8 +269,8 @@ the application wheel or add an authenticated catalog route. The resulting
 catalog is served through the existing anonymous, immutable envelope, package,
 and asset APIs.
 
-The current reviewed publication has catalog digest
-`e2454af265fdacfc410b15ca05073c5b60bc8bf2b92073e360130c88110442b4`:
+The current reviewed baseline publication has catalog digest
+`ab33bae94e289d608544daf50a9220321214c2c18a31a5feefce2ceb463a5d02`:
 six packages, 101 entities, and an exact 931-reference presentation closure for
 all 94 roster creature identities. Each creature carries its authenticated
 Library source-node packet and closure manifest, the sealed SourceNodeView v20
@@ -278,8 +278,10 @@ renderer and CSS, source media, action glyphs, and x128/x512 roster portraits.
 The complete closure is 87,575,546 bytes and has no unavailable or omitted
 presentation asset. TTRPG passes these Library-owned presentation components
 through as content-addressed semantic assets; it does not replace them with a
-re-derived stat-block renderer. Ninety-one reconnected creatures are
-intentionally persistence-only and carry a runtime blocker; Hadrosaurid,
-Viper, and Xulgath use their reviewed executable packages. The private
-evidence and migration-binding artifacts remain operator inputs and are never
-published by the HTTP service.
+re-derived stat-block renderer. Ninety of the 91 reconnected creatures publish
+exact baseline statistics, defenses, movement, and ordinary Strikes while
+advanced abilities and authored equipment remain explicitly deferred. Plague
+Zombie alone remains runtime-blocked because its mandatory runtime package is
+not selected. Hadrosaurid, Viper, and Xulgath continue to use their reviewed
+executable packages. The private evidence and migration-binding artifacts
+remain operator inputs and are never published by the HTTP service.

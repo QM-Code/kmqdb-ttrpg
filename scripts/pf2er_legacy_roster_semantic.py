@@ -1,14 +1,16 @@
-"""Source-free persistence publication for Karmak's legacy PF2ER roster.
+"""Source-free baseline publication for Karmak's legacy PF2ER roster.
 
-The roster is review authority for reconnecting the private source selections,
-but it is not evidence that every executable mechanic has been reviewed for the
-current Gladiator runtime.  This package therefore publishes only inert,
-source-free creature identity and descriptive/statistical fields.  Every entity
-is explicitly runtime-blocked and carries no inventory, strikes, or abilities.
+The roster is review authority for reconnecting the private source selections.
+Every imported creature therefore publishes the compiler's exact ordinary
+combat baseline: identity, statistics, defenses, movement, and source-authored
+strikes.  Advanced abilities, authored equipment, strike riders, and follow-up
+activities remain explicitly deferred until their individual semantic/runtime
+contracts are selected.  A deferred advanced mechanic does not invalidate the
+creature's already imported ordinary combat definition.
 Each entity carries exact generic source prose, one bounded opaque x128
 thumbnail, one opaque x512 viewer portrait, and an exact content-addressed
 offline closure of the existing source-node presentation packet.  It is
-suitable for durable stable persistence and display, never for encounter
+suitable for durable stable persistence, display, and baseline encounter
 admission.
 
 Hadrosaurid, Viper, and Xulgath Warrior are intentionally absent.  Their
@@ -51,9 +53,9 @@ from subdomains.ttrpg.pf2er_semantic import (
 PF2ER_LEGACY_ROSTER_PACKAGE_ID = (
     "ttrpg:pf2er-monster-core-one-legacy-roster"
 )
-PF2ER_LEGACY_ROSTER_PACKAGE_VERSION = "1.3.0"
+PF2ER_LEGACY_ROSTER_PACKAGE_VERSION = "1.4.0"
 PF2ER_LEGACY_ROSTER_SEMANTIC_GENERATION = (
-    "ttrpg:pf2er-monster-core-one-legacy-roster-publication-4"
+    "ttrpg:pf2er-monster-core-one-legacy-roster-publication-5"
 )
 PF2ER_LEGACY_ROSTER_EVIDENCE_AUTHORITY_ID = (
     "ttrpg:pf2er-legacy-roster-semantic-evidence"
@@ -61,7 +63,7 @@ PF2ER_LEGACY_ROSTER_EVIDENCE_AUTHORITY_ID = (
 PF2ER_LEGACY_ROSTER_PROJECTION_ID = (
     "ttrpg:pf2er-legacy-roster-persistence-definition"
 )
-PF2ER_LEGACY_ROSTER_PROJECTION_VERSION = "4.0.0"
+PF2ER_LEGACY_ROSTER_PROJECTION_VERSION = "5.0.0"
 PF2ER_LEGACY_ROSTER_SOURCE_ID = "core-mc1"
 PF2ER_LEGACY_ROSTER_THUMBNAIL_TIER = "x128"
 PF2ER_LEGACY_ROSTER_VIEWER_TIER = "x512"
@@ -75,7 +77,7 @@ PF2ER_LEGACY_ROSTER_BOOK_DIGEST = (
     "24c1e4ec306a523096a86416e35974558585bfec7abdfc3b4fc6a7a397b84abd"
 )
 PF2ER_LEGACY_ROSTER_RUNTIME_BLOCKER = (
-    "semantic-publication:legacy-roster-executable-definition-unreviewed"
+    "semantic-publication:plague-zombie-runtime-package-not-selected"
 )
 
 _EXPECTED_AUTHORITY_SCOPE = ("core-gmc", "core-mc1", "core-pc1")
@@ -101,7 +103,7 @@ _PROJECTION_MANIFEST = {
     "projectionVersion": PF2ER_LEGACY_ROSTER_PROJECTION_VERSION,
     "definitionSchema": 2,
     "entityKind": "ttrpg:creature",
-    "executionPolicy": "persistence-only-runtime-blocked",
+    "executionPolicy": "baseline-strikes-advanced-mechanics-deferred",
     "presentationPolicy": {
         "kind": "opaque-portraits-and-exact-source-node-view",
         "thumbnailTier": PF2ER_LEGACY_ROSTER_THUMBNAIL_TIER,
@@ -286,6 +288,91 @@ def _selected_object(
     return {key: packet[key] for key in keys if key in packet}
 
 
+def _project_damage_component(value: object, label: str) -> dict[str, object]:
+    component = _object(value, label)
+    projected = _selected_object(
+        component,
+        ("dice", "flatAmount", "modifier", "persistent", "type"),
+        label,
+    )
+    dice = projected.get("dice")
+    if dice is not None:
+        projected["dice"] = _selected_object(
+            dice,
+            ("count", "sides"),
+            f"{label} dice",
+        )
+    return projected
+
+
+def _project_baseline_strike(value: object) -> dict[str, object]:
+    """Select one source-free ordinary Strike and omit advanced continuations."""
+
+    strike = _object(value, "legacy roster strike")
+    projected = _selected_object(
+        strike,
+        (
+            "id",
+            "name",
+            "kind",
+            "attackModifier",
+            "traits",
+            "reachFeet",
+            "rangeIncrementFeet",
+            "maximumRangeIncrements",
+            "reloadActions",
+            "requiresDrawAfterUse",
+        ),
+        "legacy roster strike",
+    )
+    if not {
+        "id",
+        "name",
+        "kind",
+        "attackModifier",
+        "traits",
+    }.issubset(projected):
+        raise PF2ERLegacyRosterSemanticError(
+            "legacy roster strike omits its ordinary combat identity"
+        )
+    projected["traits"] = _string_list(
+        projected["traits"], "legacy roster strike traits"
+    )
+    # The baseline has no separately persisted or item-backed equipment.
+    # Source-authored Strikes are intrinsic creature attacks at the runtime
+    # boundary; advanced equipment behavior remains explicitly deferred.
+    projected["attackSource"] = {"kind": "natural"}
+    damage = _object(strike.get("damage"), "legacy roster strike damage")
+    public_damage = _selected_object(
+        damage,
+        ("dice", "flatAmount", "modifier", "type"),
+        "legacy roster strike damage",
+    )
+    dice = public_damage.get("dice")
+    if dice is not None:
+        public_damage["dice"] = _selected_object(
+            dice,
+            ("count", "sides"),
+            "legacy roster strike damage dice",
+        )
+    components = damage.get("components")
+    if type(components) is not list or not components:
+        raise PF2ERLegacyRosterSemanticError(
+            "legacy roster strike requires ordinary damage components"
+        )
+    public_damage["components"] = [
+        _project_damage_component(
+            component,
+            f"legacy roster strike damage component {index}",
+        )
+        for index, component in enumerate(components)
+    ]
+    public_damage["riderEffects"] = []
+    projected["damage"] = public_damage
+    projected["followUps"] = []
+    return projected
+
+
 def _project_persistence_definition(
     raw_definition: dict[str, object],
     target: LegacyRosterTarget,
@@ -308,21 +395,62 @@ def _project_persistence_definition(
         )
 
     defenses = _object(raw["defenses"], "legacy roster creature defenses")
-    unsupported = [
-        marker
-        for field, marker in _EXECUTABLE_MARKERS.items()
-        if raw[field]
-    ]
-    unsupported.extend(
-        marker
-        for field, marker in _DEFENSE_MARKERS.items()
-        if defenses.get(field)
+    raw_blockers = _string_list(
+        raw.get("runtimeBlockers", []),
+        "legacy roster compiler runtime blockers",
     )
-    if not unsupported:
+    if raw_blockers:
         raise PF2ERLegacyRosterSemanticError(
-            f"legacy roster entity unexpectedly has no executable fields: {target.entity_id}"
+            f"legacy roster compiler now blocks baseline execution: {target.entity_id}"
         )
+    strikes = raw["strikes"]
+    if type(strikes) is not list or not strikes:
+        raise PF2ERLegacyRosterSemanticError(
+            f"legacy roster creature has no ordinary strike: {target.entity_id}"
+        )
+    abilities = raw["abilities"]
+    inventory = raw["inventory"]
+    if type(abilities) is not list or type(inventory) is not list:
+        raise PF2ERLegacyRosterSemanticError(
+            "legacy roster compiler executable collections are invalid"
+        )
+    deferred = set(
+        _string_list(
+            raw.get("deferredMechanics", []),
+            "legacy roster compiler deferred mechanics",
+        )
+    )
+    deferred.update(
+        f"advanced-ability-omitted:{ability.get('name')}"
+        for ability in abilities
+        if type(ability) is dict and type(ability.get("name")) is str
+    )
+    deferred.update(
+        f"authored-inventory-omitted:{item.get('name')}"
+        for item in inventory
+        if type(item) is dict and type(item.get("name")) is str
+    )
+    deferred.update(
+        f"strike-rider-omitted:{rider.get('name')}"
+        for strike in strikes
+        if type(strike) is dict
+        for rider in (
+            strike.get("damage", {}).get("riderEffects", [])
+            if type(strike.get("damage")) is dict
+            else []
+        )
+        if type(rider) is dict and type(rider.get("name")) is str
+    )
+    if abilities:
+        deferred.add("semantic-publication:advanced-abilities-deferred")
+    if inventory:
+        deferred.add("semantic-publication:authored-inventory-deferred")
 
+    runtime_blockers = (
+        [PF2ER_LEGACY_ROSTER_RUNTIME_BLOCKER]
+        if target.entity_id == "pf2er:plague-zombie"
+        else []
+    )
     projected: dict[str, object] = {
         "schema": 2,
         "kind": "pf2er-creature",
@@ -354,20 +482,43 @@ def _project_persistence_definition(
                 ),
                 "legacy roster creature defenses",
             ),
-            "immunities": [],
-            "weaknesses": [],
-            "resistances": [],
+            "immunities": _string_list(
+                defenses.get("immunities", []),
+                "legacy roster creature immunities",
+            ),
+            "weaknesses": [
+                _selected_object(
+                    item,
+                    ("type", "value"),
+                    "legacy roster creature weakness",
+                )
+                for item in defenses.get("weaknesses", [])
+            ],
+            "resistances": [
+                _selected_object(
+                    item,
+                    ("type", "value"),
+                    "legacy roster creature resistance",
+                )
+                for item in defenses.get("resistances", [])
+            ],
         },
         "inventory": [],
-        "strikes": [],
+        "strikes": [_project_baseline_strike(strike) for strike in strikes],
         "abilities": [],
         "references": {"rules": [], "items": []},
-        "runtimeBlockers": [PF2ER_LEGACY_ROSTER_RUNTIME_BLOCKER],
-        "unsupportedMechanics": sorted(unsupported),
-        "deferredMechanics": [],
+        "runtimeBlockers": runtime_blockers,
+        "unsupportedMechanics": [],
+        "deferredMechanics": sorted(deferred),
         "publication": {
-            "purpose": "legacy-roster-persistence",
-            "executableDefinition": "unpublished",
+            "purpose": "legacy-roster-baseline-execution",
+            "executableDefinition": (
+                "blocked-pending-plague-zombie-runtime"
+                if runtime_blockers
+                else "baseline-strikes"
+            ),
+            "advancedMechanics": "deferred",
+            "authoredInventory": "deferred-to-owned-item-state",
             "presentationAsset": "published",
         },
         "presentation": {
@@ -438,7 +589,7 @@ def build_legacy_roster_semantic_package(
     portrait_asset_refs: Mapping[str, tuple[AssetRef, AssetRef]],
     source_presentations: Mapping[str, RosterSourcePresentation],
 ) -> SemanticPackage:
-    """Compile the exact 91-entity persistence-only roster package."""
+    """Compile the exact 91-entity baseline roster package."""
 
     if type(authority) is not SourceAuthorityAdapter:
         raise TypeError("legacy roster semantics require SourceAuthorityAdapter")

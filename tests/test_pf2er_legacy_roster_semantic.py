@@ -52,7 +52,7 @@ LIBRARY_ASSET_ROOT = Path(
     )
 ).expanduser()
 EXPECTED_PACKAGE_DIGEST = (
-    "5e2f107daf71496355043e6814dc7a50801649d20cc74b7b4390bdcc7c7d5de0"
+    "cc4a7b0e184d8e860216e8cc93aef554c85db74dc56e29fe6a5dbda3a715078d"
 )
 
 
@@ -177,14 +177,13 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
         self.assertEqual(parsed.canonical_json(), self.package.canonical_json())
         self.assertEqual(parsed.package_digest, EXPECTED_PACKAGE_DIGEST)
 
-    def test_all_definitions_are_source_free_inert_and_runtime_blocked(self) -> None:
+    def test_all_definitions_are_source_free_baseline_executable(self) -> None:
         for entity in self.package.entities:
             with self.subTest(entity=entity.entity_id):
                 definition = entity.definition
                 self.assertEqual(definition["id"], entity.entity_id)
                 self.assertEqual(definition["kind"], "pf2er-creature")
                 self.assertEqual(definition["inventory"], [])
-                self.assertEqual(definition["strikes"], [])
                 self.assertEqual(definition["abilities"], [])
                 self.assertIs(type(definition["description"]), str)
                 self.assertTrue(definition["description"])
@@ -224,11 +223,23 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
                         "maximumHitPoints",
                     }.issubset(definition["defenses"])
                 )
-                self.assertEqual(
-                    definition["runtimeBlockers"],
-                    [roster_semantic.PF2ER_LEGACY_ROSTER_RUNTIME_BLOCKER],
+                expected_blockers = (
+                    [roster_semantic.PF2ER_LEGACY_ROSTER_RUNTIME_BLOCKER]
+                    if entity.entity_id == "pf2er:plague-zombie"
+                    else []
                 )
-                self.assertTrue(definition["unsupportedMechanics"])
+                self.assertEqual(definition["runtimeBlockers"], expected_blockers)
+                self.assertEqual(definition["unsupportedMechanics"], [])
+                self.assertTrue(definition["strikes"])
+                self.assertEqual(definition["abilities"], [])
+                self.assertTrue(
+                    all(
+                        strike["damage"]["riderEffects"] == []
+                        and strike["followUps"] == []
+                        and strike["attackSource"] == {"kind": "natural"}
+                        for strike in definition["strikes"]
+                    )
+                )
                 self.assertEqual(public_definition_acquisition_paths(definition), ())
                 self.assertEqual(entity.required_capabilities, ())
                 presentation = definition["presentation"]
@@ -254,7 +265,14 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
                     definition["publication"]["presentationAsset"],
                     "published",
                 )
-                self.assertEqual(definition["deferredMechanics"], [])
+                self.assertEqual(
+                    definition["publication"]["executableDefinition"],
+                    (
+                        "blocked-pending-plague-zombie-runtime"
+                        if expected_blockers
+                        else "baseline-strikes"
+                    ),
+                )
 
     def test_portrait_inventory_is_exact_complete_and_bounded(self) -> None:
         self.assertEqual(len(self.portrait_refs), 94)

@@ -23,7 +23,6 @@ from subdomains.ttrpg.pf2er_compiler.source import source_creature_description
 from scripts.pf2er_legacy_roster_semantic import (
     PF2ER_LEGACY_ROSTER_BOOK_DIGEST,
     PF2ER_LEGACY_ROSTER_RULESET_DIGEST,
-    PF2ER_LEGACY_ROSTER_RUNTIME_BLOCKER,
     PF2ER_LEGACY_ROSTER_THUMBNAIL_TIER,
     PF2ER_LEGACY_ROSTER_VIEWER_TIER,
     PF2ER_LEGACY_ROSTER_SOURCE_ID,
@@ -600,11 +599,17 @@ def _binding_artifacts(
             target = legacy_by_address[address]
             package = legacy_package
             entity_id = target.entity_id
-            support = "persistence-only-runtime-blocked"
             current_address = (
                 f"{PF2ER_LEGACY_ROSTER_SOURCE_ID}:{target.current_locator}"
             )
-            runtime_blockers = [PF2ER_LEGACY_ROSTER_RUNTIME_BLOCKER]
+            runtime_blockers = list(
+                package.entity(entity_id).definition.get("runtimeBlockers", [])
+            )
+            support = (
+                "persistence-only-runtime-blocked"
+                if runtime_blockers
+                else "baseline-executable"
+            )
         if package.entity(entity_id).definition.get("name") != group["creatureName"]:
             raise LegacyRosterPublicationError(
                 "legacy source identity and semantic entity name disagree"
@@ -636,7 +641,16 @@ def _binding_artifacts(
         "legacyIdentityPairCount": len(bindings),
         "legacySourceAddressCount": len(actual_addresses),
         "publishedEntityCount": sum(len(package.entities) for package in packages),
-        "newPersistenceOnlyEntityCount": len(PF2ER_LEGACY_ROSTER_TARGETS),
+        "newBaselineExecutableEntityCount": sum(
+            not package.entity(target.entity_id).definition.get("runtimeBlockers")
+            for target in PF2ER_LEGACY_ROSTER_TARGETS
+            for package in (legacy_package,)
+        ),
+        "newRuntimeBlockedEntityCount": sum(
+            bool(package.entity(target.entity_id).definition.get("runtimeBlockers"))
+            for target in PF2ER_LEGACY_ROSTER_TARGETS
+            for package in (legacy_package,)
+        ),
         "reviewedRosterEntityCount": len(REVIEWED_BINDINGS),
         "rosterPortraitCount": len(portrait_manifest["portraits"]),
         "rosterPortraitTiers": portrait_manifest["tiers"],
