@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from scripts import pf2er_legacy_roster_semantic as roster_semantic
+from scripts import build_pf2er_legacy_roster_publication as roster_publication
 from subdomains.ttrpg.pf2er_compiler.source_authority_store import (
     SourceAuthorityStore,
 )
@@ -27,8 +28,14 @@ CACHE_DB = Path(
         TTRPG_ROOT / "cache" / "cache.db",
     )
 ).expanduser()
+PORTRAIT_DIR = Path(
+    os.environ.get(
+        "KMQDB_TTRPG_TEST_PORTRAIT_DIR",
+        TTRPG_ROOT / "cache" / "legacy-roster-portraits-x128",
+    )
+).expanduser()
 EXPECTED_PACKAGE_DIGEST = (
-    "476b424e53ff0ab4cb5c7fb2684f480a9d15e99559bec1a41191e7f07368fcf9"
+    "c06e7f283a5f80731f7213ce0cc18c32f5956bd5feba713d208d8fbec4358918"
 )
 
 
@@ -71,8 +78,9 @@ class PF2ERLegacyRosterTargetTests(unittest.TestCase):
 
 
 @unittest.skipUnless(
-    CACHE_DB.is_file(),
-    "live TTRPG source cache is unavailable; set KMQDB_TTRPG_TEST_CACHE_DB",
+    CACHE_DB.is_file() and PORTRAIT_DIR.is_dir(),
+    "live cache/portraits unavailable; set KMQDB_TTRPG_TEST_CACHE_DB and "
+    "KMQDB_TTRPG_TEST_PORTRAIT_DIR",
 )
 class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
     @classmethod
@@ -85,10 +93,19 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
             book_ids=(PF2ER_MONSTER_CORE_ONE_BOOK_ID,)
         )
         cls.evidence = SemanticEvidenceStore()
+        (
+            cls.portrait_refs,
+            cls.portrait_artifacts,
+            cls.portrait_manifest,
+        ) = roster_publication._portrait_inventory(PORTRAIT_DIR)
         cls.package = roster_semantic.build_legacy_roster_semantic_package(
             authority=cls.authority,
             compiler_set=cls.compiler,
             evidence_store=cls.evidence,
+            portrait_asset_refs={
+                target.entity_id: cls.portrait_refs[target.entity_id]
+                for target in roster_semantic.PF2ER_LEGACY_ROSTER_TARGETS
+            },
         )
 
     def test_package_is_exact_deterministic_and_round_trips(self) -> None:
@@ -115,7 +132,53 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
                 self.assertTrue(definition["unsupportedMechanics"])
                 self.assertEqual(public_definition_acquisition_paths(definition), ())
                 self.assertEqual(entity.required_capabilities, ())
-                self.assertEqual(entity.asset_refs, ())
+                self.assertEqual(len(entity.asset_refs), 1)
+                self.assertEqual(
+                    definition["presentation"],
+                    {"iconAssetId": entity.asset_refs[0].asset_id},
+                )
+                self.assertEqual(
+                    definition["publication"]["presentationAsset"],
+                    "published",
+                )
+                self.assertEqual(definition["deferredMechanics"], [])
+
+    def test_portrait_inventory_is_exact_complete_and_bounded(self) -> None:
+        self.assertEqual(len(self.portrait_refs), 94)
+        self.assertEqual(len(self.portrait_artifacts), 94)
+        self.assertEqual(
+            sum(artifact.size for artifact in self.portrait_artifacts),
+            727896,
+        )
+        self.assertEqual(self.portrait_manifest["tier"], "x128")
+        self.assertEqual(
+            roster_publication.canonical_digest(
+                self.portrait_manifest,
+                "legacy roster portrait source manifest",
+            ),
+            roster_publication.ROSTER_PORTRAIT_MANIFEST_DIGEST,
+        )
+        self.assertEqual(
+            len({artifact.asset_ref for artifact in self.portrait_artifacts}),
+            94,
+        )
+
+    def test_missing_portrait_reference_fails_closed(self) -> None:
+        refs = {
+            target.entity_id: self.portrait_refs[target.entity_id]
+            for target in roster_semantic.PF2ER_LEGACY_ROSTER_TARGETS
+        }
+        refs.pop("pf2er:arbiter")
+        with self.assertRaisesRegex(
+            roster_semantic.PF2ERLegacyRosterSemanticError,
+            "portrait reference census changed",
+        ):
+            roster_semantic.build_legacy_roster_semantic_package(
+                authority=self.authority,
+                compiler_set=self.compiler,
+                evidence_store=SemanticEvidenceStore(),
+                portrait_asset_refs=refs,
+            )
 
     def test_private_evidence_reconnects_every_target_without_public_leakage(self) -> None:
         for target in roster_semantic.PF2ER_LEGACY_ROSTER_TARGETS:
@@ -152,6 +215,10 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
                     authority=self.authority,
                     compiler_set=self.compiler,
                     evidence_store=SemanticEvidenceStore(),
+                    portrait_asset_refs={
+                        target.entity_id: self.portrait_refs[target.entity_id]
+                        for target in roster_semantic.PF2ER_LEGACY_ROSTER_TARGETS
+                    },
                 )
 
         wrong = build_pf2er_semantic_compiler_set()
@@ -163,6 +230,10 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
                 authority=self.authority,
                 compiler_set=wrong,
                 evidence_store=SemanticEvidenceStore(),
+                portrait_asset_refs={
+                    target.entity_id: self.portrait_refs[target.entity_id]
+                    for target in roster_semantic.PF2ER_LEGACY_ROSTER_TARGETS
+                },
             )
 
 

@@ -4,9 +4,10 @@ The roster is review authority for reconnecting the private source selections,
 but it is not evidence that every executable mechanic has been reviewed for the
 current Gladiator runtime.  This package therefore publishes only inert,
 source-free creature identity and descriptive/statistical fields.  Every entity
-is explicitly runtime-blocked and carries no inventory, strikes, abilities, or
-presentation assets.  It is suitable for durable stable persistence and
-display, never for encounter admission.
+is explicitly runtime-blocked and carries no inventory, strikes, or abilities.
+Each entity does carry one bounded, opaque x128 portrait reference for direct
+stable display.  It is suitable for durable stable persistence and display,
+never for encounter admission.
 
 Hadrosaurid, Viper, and Xulgath Warrior are intentionally absent.  Their
 existing reviewed semantic publication lanes own those identities.
@@ -17,7 +18,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hmac
 from types import MappingProxyType
-from typing import Any
+from typing import Any, Mapping
 
 from subdomains.ttrpg.pf2er_compiler.mechanics.source_authority import (
     SourceAuthorityAdapter,
@@ -29,6 +30,7 @@ from subdomains.ttrpg.semantic_evidence import (
     canonical_digest,
 )
 from subdomains.ttrpg.semantic_packages import (
+    AssetRef,
     SemanticPackage,
     build_semantic_entity,
     build_semantic_package,
@@ -45,9 +47,9 @@ from subdomains.ttrpg.pf2er_semantic import (
 PF2ER_LEGACY_ROSTER_PACKAGE_ID = (
     "ttrpg:pf2er-monster-core-one-legacy-roster"
 )
-PF2ER_LEGACY_ROSTER_PACKAGE_VERSION = "1.0.0"
+PF2ER_LEGACY_ROSTER_PACKAGE_VERSION = "1.1.0"
 PF2ER_LEGACY_ROSTER_SEMANTIC_GENERATION = (
-    "ttrpg:pf2er-monster-core-one-legacy-roster-publication-1"
+    "ttrpg:pf2er-monster-core-one-legacy-roster-publication-2"
 )
 PF2ER_LEGACY_ROSTER_EVIDENCE_AUTHORITY_ID = (
     "ttrpg:pf2er-legacy-roster-semantic-evidence"
@@ -55,8 +57,9 @@ PF2ER_LEGACY_ROSTER_EVIDENCE_AUTHORITY_ID = (
 PF2ER_LEGACY_ROSTER_PROJECTION_ID = (
     "ttrpg:pf2er-legacy-roster-persistence-definition"
 )
-PF2ER_LEGACY_ROSTER_PROJECTION_VERSION = "1.0.0"
+PF2ER_LEGACY_ROSTER_PROJECTION_VERSION = "2.0.0"
 PF2ER_LEGACY_ROSTER_SOURCE_ID = "core-mc1"
+PF2ER_LEGACY_ROSTER_PORTRAIT_TIER = "x128"
 PF2ER_LEGACY_ROSTER_AUTHORITY_DIGEST = (
     "686577b44c5a208e37dbb07a0fe1fca80aea283fd9fd9d67be640d43a93685ef"
 )
@@ -94,6 +97,10 @@ _PROJECTION_MANIFEST = {
     "definitionSchema": 2,
     "entityKind": "ttrpg:creature",
     "executionPolicy": "persistence-only-runtime-blocked",
+    "presentationPolicy": {
+        "kind": "one-opaque-direct-use-portrait",
+        "tier": PF2ER_LEGACY_ROSTER_PORTRAIT_TIER,
+    },
 }
 PF2ER_LEGACY_ROSTER_PROJECTION_DIGEST = canonical_digest(
     _PROJECTION_MANIFEST,
@@ -117,6 +124,25 @@ class LegacyRosterTarget:
     @property
     def legacy_source_address(self) -> str:
         return f"{PF2ER_LEGACY_ROSTER_SOURCE_ID}:{self.legacy_locator}"
+
+    @property
+    def portrait_asset_id(self) -> str:
+        return pf2er_roster_portrait_asset_id(self.entity_id)
+
+
+def pf2er_roster_portrait_asset_id(entity_id: str) -> str:
+    """Return the opaque direct-use roster portrait ID for one creature."""
+
+    if type(entity_id) is not str or not entity_id.startswith("pf2er:"):
+        raise PF2ERLegacyRosterSemanticError(
+            "roster portrait entity ID must be in the pf2er namespace"
+        )
+    local_id = entity_id.removeprefix("pf2er:")
+    if not local_id:
+        raise PF2ERLegacyRosterSemanticError(
+            "roster portrait entity ID must have a local component"
+        )
+    return f"ttrpg:{local_id}-icon-{PF2ER_LEGACY_ROSTER_PORTRAIT_TIER}"
 
 
 PF2ER_LEGACY_ROSTER_TARGETS = (
@@ -306,12 +332,13 @@ def _project_persistence_definition(
         "references": {"rules": [], "items": []},
         "runtimeBlockers": [PF2ER_LEGACY_ROSTER_RUNTIME_BLOCKER],
         "unsupportedMechanics": sorted(unsupported),
-        "deferredMechanics": ["presentation:creature-asset-unpublished"],
+        "deferredMechanics": [],
         "publication": {
             "purpose": "legacy-roster-persistence",
             "executableDefinition": "unpublished",
-            "presentationAsset": "unpublished",
+            "presentationAsset": "published",
         },
+        "presentation": {"iconAssetId": target.portrait_asset_id},
     }
     for key in ("size",):
         if key in raw:
@@ -372,6 +399,7 @@ def build_legacy_roster_semantic_package(
     authority: SourceAuthorityAdapter,
     compiler_set: SemanticCompilerSet,
     evidence_store: SemanticEvidenceStore,
+    portrait_asset_refs: Mapping[str, AssetRef],
 ) -> SemanticPackage:
     """Compile the exact 91-entity persistence-only roster package."""
 
@@ -381,6 +409,28 @@ def build_legacy_roster_semantic_package(
         raise TypeError("legacy roster semantics require SemanticCompilerSet")
     if type(evidence_store) is not SemanticEvidenceStore:
         raise TypeError("legacy roster semantics require SemanticEvidenceStore")
+    if not isinstance(portrait_asset_refs, Mapping):
+        raise TypeError("legacy roster semantics require portrait asset references")
+    expected_portrait_ids = {
+        target.entity_id for target in PF2ER_LEGACY_ROSTER_TARGETS
+    }
+    actual_portrait_ids = set(portrait_asset_refs)
+    if actual_portrait_ids != expected_portrait_ids:
+        raise PF2ERLegacyRosterSemanticError(
+            "legacy roster portrait reference census changed; "
+            f"missing={sorted(expected_portrait_ids - actual_portrait_ids)}, "
+            f"extra={sorted(actual_portrait_ids - expected_portrait_ids)}"
+        )
+    for target in PF2ER_LEGACY_ROSTER_TARGETS:
+        portrait_ref = portrait_asset_refs[target.entity_id]
+        if not isinstance(portrait_ref, AssetRef):
+            raise PF2ERLegacyRosterSemanticError(
+                f"legacy roster portrait reference is invalid: {target.entity_id}"
+            )
+        if portrait_ref.asset_id != target.portrait_asset_id:
+            raise PF2ERLegacyRosterSemanticError(
+                f"legacy roster portrait asset ID drifted: {target.entity_id}"
+            )
     if authority.allowed_source_ids != _EXPECTED_AUTHORITY_SCOPE:
         raise PF2ERLegacyRosterSemanticError(
             "legacy roster authority scope must be the exact Core compiler scope"
@@ -466,6 +516,7 @@ def build_legacy_roster_semantic_package(
                 projection_id=PF2ER_LEGACY_ROSTER_PROJECTION_ID,
                 projection_version=PF2ER_LEGACY_ROSTER_PROJECTION_VERSION,
                 projection_digest=PF2ER_LEGACY_ROSTER_PROJECTION_DIGEST,
+                asset_refs=(portrait_asset_refs[target.entity_id],),
             )
         )
 
@@ -483,6 +534,9 @@ def build_legacy_roster_semantic_package(
                     "entityId": entity.entity_id,
                     "definitionDigest": entity.definition_digest,
                     "evidenceRecordDigest": entity.receipt.evidence_record_digest,
+                    "assetRefs": [
+                        asset_ref.to_dict() for asset_ref in entity.asset_refs
+                    ],
                 }
                 for entity in entities
             ],
@@ -514,6 +568,7 @@ __all__ = [
     "PF2ER_LEGACY_ROSTER_BOOK_DIGEST",
     "PF2ER_LEGACY_ROSTER_PACKAGE_ID",
     "PF2ER_LEGACY_ROSTER_PACKAGE_VERSION",
+    "PF2ER_LEGACY_ROSTER_PORTRAIT_TIER",
     "PF2ER_LEGACY_ROSTER_PROJECTION_DIGEST",
     "PF2ER_LEGACY_ROSTER_PROJECTION_ID",
     "PF2ER_LEGACY_ROSTER_PROJECTION_VERSION",
@@ -522,4 +577,5 @@ __all__ = [
     "PF2ER_LEGACY_ROSTER_SEMANTIC_GENERATION",
     "PF2ER_LEGACY_ROSTER_TARGETS",
     "build_legacy_roster_semantic_package",
+    "pf2er_roster_portrait_asset_id",
 ]
