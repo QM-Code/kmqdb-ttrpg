@@ -67,23 +67,27 @@ portable product gate runs 182 cases with 17 exact cache-dependent skips; the
 complete live-cache gate runs 199 cases with zero skips.
 
 The active anonymous semantic repository is catalog digest
-`a0efb143ee0f77ca89a03a3ae8d22e62b3392ac094984d4b7c6f27e6383d3a8b`.
-It contains six packages, 101 entities, exact generic source prose and
-complete non-executable statistics for all 94 roster creature identities, and
-94 x128 plus 94 x512 WebP portraits totaling 7,156,182 bytes. The immediately
-prior `fbd8e15a...371d` repository remains immutable on the retained volume for
+`e2454af265fdacfc410b15ca05073c5b60bc8bf2b92073e360130c88110442b4`.
+It contains six packages, 101 entities, and the exact Library-owned
+SourceNodeView v20 presentation for all 94 roster creature identities: 94
+source-node packets, 94 closure manifests, 550 source media assets, five shared
+renderer/CSS/manifest assets, and 188 x128/x512 portraits. The complete
+931-reference closure is 87,575,546 bytes. The immediately prior
+`a0efb143...d3a8b` repository remains immutable on the retained volume for
 rollback.
 
-The 2026-08-25 renderer refresh used reviewed operator source `01c6604` and
-atomically activated cache SHA-256
-`5a27f757d8098fc22cead911f5866f97d423097afd77db0c9bc756dbee1e8007`.
-That schema-3 cache is 422,338,560 bytes, contains 6,097 binary assets and
+The 2026-08-26 SourceNodeView v20 refresh used reviewed Library source commit
+`ff3baaf` and atomically activated cache SHA-256
+`0038346c4f62abe1107e012376baeff1b57dd6f63c05025e27fb20c6fc1afd7b`.
+That schema-3 cache is 422,342,656 bytes, contains 6,097 binary assets and
 364,702,456 embedded body bytes with zero null bodies, and binds source
 generation `fdb01435915f666d0d1dfb05748d7dcc481e383c562de304b91fd2b4f548f3e8`.
 Its presentation has exactly two scripts: the CSP-safe sealed-renderer
-interface and the reviewed digest-sealed PF2ER bundle. The immediate prior
-cache remains as the retained-volume hard-link
-`cache.db.pre-fff7f8e-sealed`.
+interface and the reviewed digest-sealed PF2ER bundle. Renderer interface SHA
+`678f6724684e74a58fc8db53f4746743c2017a9b1dec41329549fe345c062df6`
+is served unchanged through both the presentation endpoint and the semantic
+asset route. The immediate prior cache remains as the retained-volume
+hard-link `cache.db.pre-ff3baaf-v20`.
 
 Subsequent refreshes use the generic Core-account and Library-membership
 boundary. The Core account `ttrpg` exchanges its service-bound machine

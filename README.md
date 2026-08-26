@@ -270,12 +270,16 @@ catalog is served through the existing anonymous, immutable envelope, package,
 and asset APIs.
 
 The current reviewed publication has catalog digest
-`a0efb143ee0f77ca89a03a3ae8d22e62b3392ac094984d4b7c6f27e6383d3a8b`:
-six packages, 101 entities, exact generic source prose and complete
-non-executable statistics for all 94 roster creature identities, and an exact
-two-tier portrait closure. Each creature has one x128 thumbnail and one x512
-viewer image; the 188 WebPs total 7,156,182 bytes. Ninety-one reconnected
-creatures are intentionally persistence-only and carry a runtime blocker;
-Hadrosaurid, Viper, and Xulgath use their reviewed executable packages. The
-private evidence and migration-binding artifacts remain operator inputs and
-are never published by the HTTP service.
+`e2454af265fdacfc410b15ca05073c5b60bc8bf2b92073e360130c88110442b4`:
+six packages, 101 entities, and an exact 931-reference presentation closure for
+all 94 roster creature identities. Each creature carries its authenticated
+Library source-node packet and closure manifest, the sealed SourceNodeView v20
+renderer and CSS, source media, action glyphs, and x128/x512 roster portraits.
+The complete closure is 87,575,546 bytes and has no unavailable or omitted
+presentation asset. TTRPG passes these Library-owned presentation components
+through as content-addressed semantic assets; it does not replace them with a
+re-derived stat-block renderer. Ninety-one reconnected creatures are
+intentionally persistence-only and carry a runtime blocker; Hadrosaurid,
+Viper, and Xulgath use their reviewed executable packages. The private
+evidence and migration-binding artifacts remain operator inputs and are never
+published by the HTTP service.
