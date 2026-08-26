@@ -94,8 +94,9 @@ boundary. The Core account `ttrpg` exchanges its service-bound machine
 credential for a short-lived Library-audience assertion. Library then verifies
 that identity and its active `reader` membership in the owner library
 `karmak`, scoped to `games/ttrpg`. The synchronizer selects one ruleset child;
-PF2ER is the first, not a special identity or storage boundary. Library is
-authoritative for delivered-byte accounting and charges the library owner.
+PF2ER is the first, not a special identity or storage boundary. Library's
+ordinary owner-level outgoing-usage counters remain authoritative and charge
+the Library owner; there is no receiver-specific or inter-service byte ledger.
 TTRPG verifies the immutable generation and caches its structured publication
 plus bounded direct-use media on the retained volume. Normal browser/compiler
 requests use that local cache and incur no cross-service transfer. Revocation

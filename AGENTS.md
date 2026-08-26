@@ -25,6 +25,20 @@
 - Normal files use mode `644` and directories use mode `755`. Keep cache,
   authentication, and semantic-repository state out of Git.
 
+## Adjacent KMQDB services
+
+| Service | Repository | Host | Relationship to TTRPG |
+| --- | --- | --- | --- |
+| Core | `/home/karmak/dev/kmqdb` / `QM-Code/kmqdb` | `kmqdb.com` | Machine/human identity and future generic entitlement authority |
+| Library | `/home/karmak/dev/kmqdb-lib` / `QM-Code/kmqdb-lib` | `lib.kmqdb.com` | Authoritative private source/presentation service; TTRPG refreshes one membership-scoped immutable generation into its local cache |
+| Gladiator | `/home/karmak/dev/kmqdb-gladiator` / `QM-Code/kmqdb-gladiator` | `gladiator.kmqdb.com` | Anonymous consumer of TTRPG semantic packages/assets; gameplay runs from its provisioned offline bundle |
+| Agriculture | `/home/karmak/dev/kmqdb-agriculture` / `QM-Code/kmqdb-agriculture` | `agriculture.kmqdb.com` | Dormant independent data service |
+| Taxonomy | `/home/karmak/dev/kmqdb-taxonomy` / `QM-Code/kmqdb-taxonomy` | `taxonomy.kmqdb.com` | Dormant independent data service |
+
+Library → TTRPG is an authenticated refresh and cache boundary. TTRPG →
+Gladiator is an anonymous immutable semantic-provider boundary. TTRPG does not
+serve Library credentials or raw private source storage to Gladiator.
+
 ## GitHub Access
 
 - Use SSH for GitHub verification, fetches, and pushes.
@@ -96,12 +110,13 @@ shell access; treat the authenticated greeting as a successful verification.
   cost becomes material, it may move to a TTRPG-owned S3 cache excluded from
   nightly retained-volume backups; that is a storage optimization, not a
   change in publication authority.
-- Presentation JavaScript must arrive as one reviewed Library renderer
-  interface plus one digest-sealed same-origin bundle. The synchronizer rejects
-  a missing bundle or a renderer interface that uses dynamic evaluation.
-  Production CSP stays strict and never gains `unsafe-eval`; renderer drift is
-  resolved by reviewing and resealing the Library profile, not by weakening the
-  browser boundary.
+- Source CSS and renderer JavaScript are exact private-Library publication
+  content accepted by that Library's owner/editor and trusted by its members.
+  TTRPG preserves the selected presentation closure without re-deriving or
+  truncating it, then seals the exact Library renderer interface and source
+  bundle for same-origin delivery. Production CSP stays strict and does not
+  dynamically evaluate downloaded text; a byte change requires a newly
+  verified generation rather than a local renderer rewrite.
 - Build a deployment semantic repository from reviewed package/asset bundles
   with `scripts/build_semantic_repository.py`. Deploy only the resulting
   digest-named immutable repository; never bundle provider source trees or
