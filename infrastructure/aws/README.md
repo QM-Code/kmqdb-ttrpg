@@ -67,14 +67,17 @@ portable product gate runs 182 cases with 17 exact cache-dependent skips; the
 complete live-cache gate runs 199 cases with zero skips.
 
 The active anonymous semantic repository is catalog digest
-`e2454af265fdacfc410b15ca05073c5b60bc8bf2b92073e360130c88110442b4`.
+`ab33bae94e289d608544daf50a9220321214c2c18a31a5feefce2ceb463a5d02`.
 It contains six packages, 101 entities, and the exact Library-owned
 SourceNodeView v20 presentation for all 94 roster creature identities: 94
 source-node packets, 94 closure manifests, 550 source media assets, five shared
 renderer/CSS/manifest assets, and 188 x128/x512 portraits. The complete
-931-reference closure is 87,575,546 bytes. The immediately prior
-`a0efb143...d3a8b` repository remains immutable on the retained volume for
-rollback.
+931-reference closure is 87,575,546 bytes. Ninety reconnected legacy creatures
+publish exact baseline statistics, defenses, movement, and ordinary Strikes;
+advanced abilities and authored equipment remain deferred. Plague Zombie is
+the sole runtime-blocked legacy entity because its mandatory runtime package
+is not selected. The immediately prior `e2454af...42b4` repository remains
+immutable on the retained volume for rollback.
 
 The 2026-08-26 SourceNodeView v20 refresh used reviewed Library source commit
 `ff3baaf` and atomically activated cache SHA-256

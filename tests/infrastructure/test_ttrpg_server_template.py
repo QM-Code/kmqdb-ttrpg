@@ -15,6 +15,12 @@ HARDENING = ROOT / "infrastructure" / "aws" / "kmqdbttrpg-hardening.conf"
 SHELL = ROOT / "infrastructure" / "aws" / "ttrpg-shell.html"
 SERVICE = ROOT / "kmqdbttrpg.service.example"
 README = ROOT / "infrastructure" / "aws" / "README.md"
+SEMANTIC_REPOSITORY = (
+    ROOT
+    / "infrastructure"
+    / "aws"
+    / "kmqdbttrpg-semantic-repository.conf"
+)
 
 
 class TtrpgServerTemplateTests(unittest.TestCase):
@@ -100,6 +106,16 @@ class TtrpgServerTemplateTests(unittest.TestCase):
         self.assertIn("NoNewPrivileges=true", source)
         self.assertIn("CapabilityBoundingSet=\n", source)
         self.assertIn("ReadWritePaths=/var/lib/kmqdb/ttrpg", source)
+
+    def test_semantic_repository_drop_in_pins_the_reviewed_baseline(self) -> None:
+        source = SEMANTIC_REPOSITORY.read_text(encoding="utf-8")
+        self.assertEqual(
+            source,
+            "[Service]\n"
+            "Environment=KMQDB_TTRPG_SEMANTIC_REPOSITORY="
+            "/var/lib/kmqdb/ttrpg/semantic-repositories/"
+            "ab33bae94e289d608544daf50a9220321214c2c18a31a5feefce2ceb463a5d02\n",
+        )
 
     def test_tls_proxy_rejects_unknown_hosts_and_uses_loopback(self) -> None:
         source = NGINX.read_text(encoding="utf-8")
