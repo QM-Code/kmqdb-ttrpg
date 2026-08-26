@@ -67,10 +67,12 @@ portable product gate runs 182 cases with 17 exact cache-dependent skips; the
 complete live-cache gate runs 199 cases with zero skips.
 
 The active anonymous semantic repository is catalog digest
-`fbd8e15a35709f299f9802c0ea98f88092de6d9569bc38dc506889b58e91371d`.
-It contains six packages, 101 entities, and the exhaustive 94-creature x128
-portrait closure (727,896 bytes). The immediately prior `4c56c47b...05a`
-repository remains immutable on the retained volume for rollback.
+`a0efb143ee0f77ca89a03a3ae8d22e62b3392ac094984d4b7c6f27e6383d3a8b`.
+It contains six packages, 101 entities, exact generic source prose and
+complete non-executable statistics for all 94 roster creature identities, and
+94 x128 plus 94 x512 WebP portraits totaling 7,156,182 bytes. The immediately
+prior `fbd8e15a...371d` repository remains immutable on the retained volume for
+rollback.
 
 The 2026-08-25 renderer refresh used reviewed operator source `01c6604` and
 atomically activated cache SHA-256

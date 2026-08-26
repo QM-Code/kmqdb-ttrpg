@@ -270,10 +270,12 @@ catalog is served through the existing anonymous, immutable envelope, package,
 and asset APIs.
 
 The current reviewed publication has catalog digest
-`fbd8e15a35709f299f9802c0ea98f88092de6d9569bc38dc506889b58e91371d`:
-six packages, 101 entities, and the exhaustive 94-creature x128 portrait
-closure (727,896 bytes). Ninety-one reconnected creatures are intentionally
-persistence-only and carry a runtime blocker; Hadrosaurid, Viper, and Xulgath
-use their reviewed executable packages. The private evidence and
-migration-binding artifacts remain operator inputs and are never published by
-the HTTP service.
+`a0efb143ee0f77ca89a03a3ae8d22e62b3392ac094984d4b7c6f27e6383d3a8b`:
+six packages, 101 entities, exact generic source prose and complete
+non-executable statistics for all 94 roster creature identities, and an exact
+two-tier portrait closure. Each creature has one x128 thumbnail and one x512
+viewer image; the 188 WebPs total 7,156,182 bytes. Ninety-one reconnected
+creatures are intentionally persistence-only and carry a runtime blocker;
+Hadrosaurid, Viper, and Xulgath use their reviewed executable packages. The
+private evidence and migration-binding artifacts remain operator inputs and
+are never published by the HTTP service.
