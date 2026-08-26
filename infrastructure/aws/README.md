@@ -66,6 +66,12 @@ body-null rows. It remains a local cache, not a live object-store mount. The
 portable product gate runs 182 cases with 17 exact cache-dependent skips; the
 complete live-cache gate runs 199 cases with zero skips.
 
+The active anonymous semantic repository is catalog digest
+`fbd8e15a35709f299f9802c0ea98f88092de6d9569bc38dc506889b58e91371d`.
+It contains six packages, 101 entities, and the exhaustive 94-creature x128
+portrait closure (727,896 bytes). The immediately prior `4c56c47b...05a`
+repository remains immutable on the retained volume for rollback.
+
 The 2026-08-25 renderer refresh used reviewed operator source `01c6604` and
 atomically activated cache SHA-256
 `5a27f757d8098fc22cead911f5866f97d423097afd77db0c9bc756dbee1e8007`.
