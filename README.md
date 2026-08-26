@@ -259,3 +259,20 @@ Version 1.0.0 is exactly
 The `semantic-contracts-v1.0.0` tag publishes that tested wheel as a GitHub
 Release asset; the release job reuses the verified CI artifact and does not
 rebuild it.
+
+## Legacy roster publication operator
+
+The operator-only `scripts/build_pf2er_legacy_roster_publication.py` reconnects
+an explicitly reviewed source-era Gladiator roster to current private TTRPG
+source evidence and emits a canonical public semantic bundle. It does not join
+the application wheel or add an authenticated catalog route. The resulting
+catalog is served through the existing anonymous, immutable envelope, package,
+and asset APIs.
+
+The current reviewed publication has catalog digest
+`4c56c47b2ee9984f25cd988578cb426e392ba581d1a3d6fb875cc05b0332b05a`:
+six packages, 101 entities, and one exact Xulgath icon. Ninety-one reconnected
+creatures are intentionally persistence-only and carry a runtime blocker;
+Hadrosaurid, Viper, and Xulgath use their reviewed executable packages. The
+private evidence and migration-binding artifacts remain operator inputs and
+are never published by the HTTP service.

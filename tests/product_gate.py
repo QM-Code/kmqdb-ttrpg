@@ -41,6 +41,7 @@ APPLICATION_MODULES = (
     ("test_pf2er_spell_semantic.py", 3),
     ("test_pf2er_viper_semantic.py", 7),
     ("test_pf2er_hadrosaurid_semantic.py", 7),
+    ("test_pf2er_legacy_roster_semantic.py", 6),
 )
 CONTRACT_MODULES = (("test_ttrpg_semantic_contract_wheel.py", 5),)
 INSTALLED_MODULES = tuple(
@@ -51,6 +52,7 @@ INSTALLED_MODULES = tuple(
         "test_sync_library_cache.py",
         "test_item_catalog.py",
         "test_ttrpg_service_separation.py",
+        "test_pf2er_legacy_roster_semantic.py",
     }
 )
 
@@ -63,10 +65,10 @@ GATES = {
 
 CACHE_ENVIRONMENT = "KMQDB_TTRPG_TEST_CACHE_DB"
 PORTABLE_EXPECTATIONS = {
-    "application": (177, 17),
+    "application": (183, 21),
     "installed": (131, 11),
     "semantic-contract": (5, 0),
-    "all": (182, 17),
+    "all": (188, 21),
 }
 
 
