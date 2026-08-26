@@ -1399,13 +1399,13 @@ def _creature_description_text(
             label,
             ignore_empty_paragraphs=True,
         )
-    named = description.values(creature_name)
-    if len(description.members) != 1 or len(named) != 1:
+    if len(description.members) != 1:
         raise _errors.EngineInputError(
-            f"{label} must contain exactly one matching article"
+            f"{label} must contain exactly one article"
         )
+    article = description.members[0].value
     return _raw_source_flow_text(
-        named[0],
+        article,
         label,
         ignore_empty_paragraphs=True,
     )

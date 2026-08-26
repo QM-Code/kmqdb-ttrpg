@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 from pathlib import Path
 import unittest
@@ -10,6 +11,10 @@ from scripts import build_pf2er_legacy_roster_publication as roster_publication
 from subdomains.ttrpg.pf2er_compiler.source_authority_store import (
     SourceAuthorityStore,
 )
+from subdomains.ttrpg.pf2er_compiler.source import source_creature_description
+from subdomains.ttrpg.pf2er_compiler import source as pf2er_source
+from subdomains.ttrpg.pf2er_compiler import errors as pf2er_errors
+from subdomains.ttrpg.pf2er_compiler.mechanics.contracts import RawSourceObject
 from subdomains.ttrpg.pf2er_semantic import (
     PF2ER_MONSTER_CORE_ONE_BOOK_ID,
     build_pf2er_semantic_compiler_set,
@@ -28,14 +33,14 @@ CACHE_DB = Path(
         TTRPG_ROOT / "cache" / "cache.db",
     )
 ).expanduser()
-PORTRAIT_DIR = Path(
+PORTRAIT_ROOT = Path(
     os.environ.get(
-        "KMQDB_TTRPG_TEST_PORTRAIT_DIR",
-        TTRPG_ROOT / "cache" / "legacy-roster-portraits-x128",
+        "KMQDB_TTRPG_TEST_PORTRAIT_ROOT",
+        TTRPG_ROOT / "cache" / "legacy-roster-portraits",
     )
 ).expanduser()
 EXPECTED_PACKAGE_DIGEST = (
-    "c06e7f283a5f80731f7213ce0cc18c32f5956bd5feba713d208d8fbec4358918"
+    "67656d2a81246a96de022f1019e53e1b3dd751a4f9c499fef16d26929f353232"
 )
 
 
@@ -76,11 +81,25 @@ class PF2ERLegacyRosterTargetTests(unittest.TestCase):
             },
         )
 
+    def test_generic_description_remains_ambiguous_article_fail_closed(self) -> None:
+        description = RawSourceObject.from_pairs(
+            [
+                ("Family One", RawSourceObject.from_pairs([("~.p", "one")])),
+                ("Family Two", RawSourceObject.from_pairs([("~.p", "two")])),
+            ]
+        )
+        block = RawSourceObject.from_pairs([("Description", description)])
+        with self.assertRaisesRegex(
+            pf2er_errors.EngineInputError,
+            "must contain exactly one article",
+        ):
+            pf2er_source._creature_description_text(block, "Creature")
+
 
 @unittest.skipUnless(
-    CACHE_DB.is_file() and PORTRAIT_DIR.is_dir(),
+    CACHE_DB.is_file() and PORTRAIT_ROOT.is_dir(),
     "live cache/portraits unavailable; set KMQDB_TTRPG_TEST_CACHE_DB and "
-    "KMQDB_TTRPG_TEST_PORTRAIT_DIR",
+    "KMQDB_TTRPG_TEST_PORTRAIT_ROOT",
 )
 class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
     @classmethod
@@ -97,7 +116,7 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
             cls.portrait_refs,
             cls.portrait_artifacts,
             cls.portrait_manifest,
-        ) = roster_publication._portrait_inventory(PORTRAIT_DIR)
+        ) = roster_publication._portrait_inventory(PORTRAIT_ROOT)
         cls.package = roster_semantic.build_legacy_roster_semantic_package(
             authority=cls.authority,
             compiler_set=cls.compiler,
@@ -125,6 +144,44 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
                 self.assertEqual(definition["inventory"], [])
                 self.assertEqual(definition["strikes"], [])
                 self.assertEqual(definition["abilities"], [])
+                self.assertIs(type(definition["description"]), str)
+                self.assertTrue(definition["description"])
+                self.assertIs(type(definition["level"]), int)
+                self.assertIs(type(definition["size"]), str)
+                self.assertIs(type(definition["traits"]), list)
+                self.assertIs(type(definition["languages"]), list)
+                self.assertEqual(
+                    set(definition["attributes"]),
+                    {
+                        "strength",
+                        "dexterity",
+                        "constitution",
+                        "intelligence",
+                        "wisdom",
+                        "charisma",
+                    },
+                )
+                self.assertEqual(
+                    set(definition["perception"]),
+                    {"modifier", "senses"},
+                )
+                self.assertIs(type(definition["skills"]), list)
+                self.assertTrue(definition["speeds"])
+                self.assertTrue(
+                    all(
+                        type(value) is int and value > 0
+                        for value in definition["speeds"].values()
+                    )
+                )
+                self.assertTrue(
+                    {
+                        "armorClass",
+                        "fortitude",
+                        "reflex",
+                        "will",
+                        "maximumHitPoints",
+                    }.issubset(definition["defenses"])
+                )
                 self.assertEqual(
                     definition["runtimeBlockers"],
                     [roster_semantic.PF2ER_LEGACY_ROSTER_RUNTIME_BLOCKER],
@@ -132,10 +189,27 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
                 self.assertTrue(definition["unsupportedMechanics"])
                 self.assertEqual(public_definition_acquisition_paths(definition), ())
                 self.assertEqual(entity.required_capabilities, ())
-                self.assertEqual(len(entity.asset_refs), 1)
+                self.assertEqual(len(entity.asset_refs), 2)
                 self.assertEqual(
                     definition["presentation"],
-                    {"iconAssetId": entity.asset_refs[0].asset_id},
+                    {
+                        "iconAssetId": (
+                            roster_semantic.pf2er_roster_portrait_asset_id(
+                                entity.entity_id,
+                                "x128",
+                            )
+                        ),
+                        "viewerAssetId": (
+                            roster_semantic.pf2er_roster_portrait_asset_id(
+                                entity.entity_id,
+                                "x512",
+                            )
+                        ),
+                    },
+                )
+                self.assertEqual(
+                    {item.asset_id for item in entity.asset_refs},
+                    set(definition["presentation"].values()),
                 )
                 self.assertEqual(
                     definition["publication"]["presentationAsset"],
@@ -145,12 +219,15 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
 
     def test_portrait_inventory_is_exact_complete_and_bounded(self) -> None:
         self.assertEqual(len(self.portrait_refs), 94)
-        self.assertEqual(len(self.portrait_artifacts), 94)
+        self.assertEqual(len(self.portrait_artifacts), 188)
         self.assertEqual(
             sum(artifact.size for artifact in self.portrait_artifacts),
-            727896,
+            7156182,
         )
-        self.assertEqual(self.portrait_manifest["tier"], "x128")
+        self.assertEqual(
+            self.portrait_manifest["tiers"],
+            {"thumbnail": "x128", "viewer": "x512"},
+        )
         self.assertEqual(
             roster_publication.canonical_digest(
                 self.portrait_manifest,
@@ -160,7 +237,19 @@ class PF2ERLegacyRosterPublicationTests(unittest.TestCase):
         )
         self.assertEqual(
             len({artifact.asset_ref for artifact in self.portrait_artifacts}),
-            94,
+            188,
+        )
+
+    def test_generic_description_handles_one_broader_family_heading(self) -> None:
+        description = source_creature_description(
+            self.authority,
+            "core-mc1",
+            "248.1",
+        )
+        self.assertEqual(len(description), 654)
+        self.assertEqual(
+            hashlib.sha256(description.encode("utf-8")).hexdigest(),
+            "1582171927f7e4472a26832e7ed05192397fe7e3e146f4d03fc02f37d7c61849",
         )
 
     def test_missing_portrait_reference_fails_closed(self) -> None:

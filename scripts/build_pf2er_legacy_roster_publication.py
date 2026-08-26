@@ -19,11 +19,13 @@ from subdomains.ttrpg import pf2er_semantic
 from subdomains.ttrpg.pf2er_compiler.source_authority_store import (
     SourceAuthorityStore,
 )
+from subdomains.ttrpg.pf2er_compiler.source import source_creature_description
 from scripts.pf2er_legacy_roster_semantic import (
     PF2ER_LEGACY_ROSTER_BOOK_DIGEST,
     PF2ER_LEGACY_ROSTER_RULESET_DIGEST,
     PF2ER_LEGACY_ROSTER_RUNTIME_BLOCKER,
-    PF2ER_LEGACY_ROSTER_PORTRAIT_TIER,
+    PF2ER_LEGACY_ROSTER_THUMBNAIL_TIER,
+    PF2ER_LEGACY_ROSTER_VIEWER_TIER,
     PF2ER_LEGACY_ROSTER_SOURCE_ID,
     PF2ER_LEGACY_ROSTER_TARGETS,
     build_legacy_roster_semantic_package,
@@ -52,29 +54,31 @@ XULGATH_ICON_DIGEST = (
     "aa81ad330e38bf2f04521ce524ab07cc06add632bd9447edee529cb8a0a400f9"
 )
 ROSTER_PORTRAIT_MANIFEST_DIGEST = (
-    "1bd6902edee6d495887a2341aeb8fdd60fd46ef0eff044461fd86fe7a2bc43c1"
+    "6b32af1f7e7fcfdb3c197d351932c8be87ec8cdd62f78b1941db93fdc1e2cb5c"
 )
-REVIEWED_PORTRAIT_PROJECTION_ID = (
-    "ttrpg:pf2er-reviewed-creature-roster-portrait"
+REVIEWED_PRESENTATION_PROJECTION_ID = (
+    "ttrpg:pf2er-reviewed-creature-roster-presentation"
 )
-REVIEWED_PORTRAIT_PROJECTION_VERSION = "1.0.0"
-REVIEWED_PORTRAIT_EVIDENCE_AUTHORITY_ID = (
-    "ttrpg:pf2er-reviewed-roster-portrait-evidence"
+REVIEWED_PRESENTATION_PROJECTION_VERSION = "2.0.0"
+REVIEWED_PRESENTATION_EVIDENCE_AUTHORITY_ID = (
+    "ttrpg:pf2er-reviewed-roster-presentation-evidence"
 )
-_REVIEWED_PORTRAIT_PROJECTION_MANIFEST = {
+_REVIEWED_PRESENTATION_PROJECTION_MANIFEST = {
     "schema": 1,
-    "projectionId": REVIEWED_PORTRAIT_PROJECTION_ID,
-    "projectionVersion": REVIEWED_PORTRAIT_PROJECTION_VERSION,
-    "kind": "reviewed-creature-presentation-augmentation",
+    "projectionId": REVIEWED_PRESENTATION_PROJECTION_ID,
+    "projectionVersion": REVIEWED_PRESENTATION_PROJECTION_VERSION,
+    "kind": "reviewed-creature-description-and-presentation-augmentation",
     "presentationPolicy": {
-        "kind": "one-opaque-direct-use-portrait",
-        "tier": PF2ER_LEGACY_ROSTER_PORTRAIT_TIER,
+        "kind": "opaque-direct-use-thumbnail-and-viewer-portrait",
+        "thumbnailTier": PF2ER_LEGACY_ROSTER_THUMBNAIL_TIER,
+        "viewerTier": PF2ER_LEGACY_ROSTER_VIEWER_TIER,
     },
+    "descriptionPolicy": "exact-generic-source-prose",
     "mechanicsPolicy": "preserve-exactly",
 }
-REVIEWED_PORTRAIT_PROJECTION_DIGEST = canonical_digest(
-    _REVIEWED_PORTRAIT_PROJECTION_MANIFEST,
-    "reviewed roster portrait projection",
+REVIEWED_PRESENTATION_PROJECTION_DIGEST = canonical_digest(
+    _REVIEWED_PRESENTATION_PROJECTION_MANIFEST,
+    "reviewed roster presentation projection",
 )
 EXPECTED_BASE_PACKAGE_IDS = frozenset(
     {
@@ -102,6 +106,11 @@ REVIEWED_PORTRAIT_NAMES = {
     "pf2er:hadrosaurid": "Hadrosaurid",
     "pf2er:viper": "Viper",
     pf2er_semantic.PF2ER_XULGATH_WARRIOR_ENTITY_ID: "Xulgath Warrior",
+}
+REVIEWED_SOURCE_LOCATORS = {
+    "pf2er:hadrosaurid": "98.2",
+    "pf2er:viper": "316.2",
+    pf2er_semantic.PF2ER_XULGATH_WARRIOR_ENTITY_ID: "352.3",
 }
 
 
@@ -162,11 +171,11 @@ def _load_base_packages(directory: Path) -> tuple[SemanticPackage, ...]:
 def _portrait_inventory(
     directory: Path,
 ) -> tuple[
-    dict[str, AssetRef],
+    dict[str, tuple[AssetRef, AssetRef]],
     tuple[SemanticAssetArtifact, ...],
     dict[str, object],
 ]:
-    """Authenticate the exact complete x128 roster portrait closure."""
+    """Authenticate the exact complete x128/x512 roster asset closure."""
 
     if directory.is_symlink() or not directory.is_dir():
         raise LegacyRosterPublicationError(
@@ -181,50 +190,61 @@ def _portrait_inventory(
             "roster portrait target census changed"
         )
 
-    refs: dict[str, AssetRef] = {}
+    refs: dict[str, tuple[AssetRef, AssetRef]] = {}
     artifacts = []
     entries = []
     missing = []
     for entity_id, creature_name in sorted(names_by_entity.items()):
-        path = directory / f"{creature_name}.webp"
-        if path.is_symlink() or not path.is_file():
-            missing.append(creature_name)
-            continue
-        body = path.read_bytes()
-        if (
-            len(body) < 16
-            or body[:4] != b"RIFF"
-            or body[8:12] != b"WEBP"
+        entry: dict[str, object] = {
+            "entityId": entity_id,
+            "creatureName": creature_name,
+        }
+        entity_refs = []
+        for role, tier in (
+            ("thumbnail", PF2ER_LEGACY_ROSTER_THUMBNAIL_TIER),
+            ("viewer", PF2ER_LEGACY_ROSTER_VIEWER_TIER),
         ):
-            raise LegacyRosterPublicationError(
-                f"roster portrait is not a WebP file: {creature_name}"
+            path = directory / tier / f"{creature_name}.webp"
+            if path.is_symlink() or not path.is_file():
+                missing.append(f"{tier}/{creature_name}")
+                continue
+            body = path.read_bytes()
+            if (
+                len(body) < 16
+                or body[:4] != b"RIFF"
+                or body[8:12] != b"WEBP"
+            ):
+                raise LegacyRosterPublicationError(
+                    f"roster portrait is not a WebP file: {tier}/{creature_name}"
+                )
+            asset_ref = AssetRef(
+                pf2er_roster_portrait_asset_id(entity_id, tier),
+                hashlib.sha256(body).hexdigest(),
             )
-        asset_ref = AssetRef(
-            pf2er_roster_portrait_asset_id(entity_id),
-            hashlib.sha256(body).hexdigest(),
-        )
-        refs[entity_id] = asset_ref
-        artifacts.append(
-            SemanticAssetArtifact.from_bytes(asset_ref, "image/webp", body)
-        )
-        entries.append(
-            {
-                "entityId": entity_id,
-                "creatureName": creature_name,
+            entity_refs.append(asset_ref)
+            artifacts.append(
+                SemanticAssetArtifact.from_bytes(asset_ref, "image/webp", body)
+            )
+            entry[role] = {
                 "assetId": asset_ref.asset_id,
                 "assetDigest": asset_ref.asset_digest,
                 "size": len(body),
             }
-        )
+        if len(entity_refs) == 2:
+            refs[entity_id] = (entity_refs[0], entity_refs[1])
+            entries.append(entry)
     if missing:
         raise LegacyRosterPublicationError(
             "roster portraits are incomplete; missing=" + ", ".join(missing)
         )
 
     manifest = {
-        "schema": 1,
-        "tier": PF2ER_LEGACY_ROSTER_PORTRAIT_TIER,
+        "schema": 2,
         "mediaType": "image/webp",
+        "tiers": {
+            "thumbnail": PF2ER_LEGACY_ROSTER_THUMBNAIL_TIER,
+            "viewer": PF2ER_LEGACY_ROSTER_VIEWER_TIER,
+        },
         "portraits": entries,
     }
     actual_digest = canonical_digest(
@@ -239,69 +259,119 @@ def _portrait_inventory(
     return refs, tuple(artifacts), manifest
 
 
-def _augment_reviewed_portrait(
+def _augment_reviewed_presentation(
     package: SemanticPackage,
     *,
+    authority,
     entity_id: str,
-    portrait_ref: AssetRef,
+    source_locator: str,
+    description: str,
+    source_languages: list[str],
+    portrait_refs: tuple[AssetRef, AssetRef],
     evidence_store: SemanticEvidenceStore,
 ) -> SemanticPackage:
-    """Add only an authenticated portrait to one reviewed creature package."""
+    """Add only authenticated prose and portraits to a reviewed creature."""
 
     base_entity = package.entity(entity_id)
+    if type(description) is not str or not description:
+        raise LegacyRosterPublicationError(
+            f"reviewed creature description is empty: {entity_id}"
+        )
+    if type(source_languages) is not list or any(
+        type(item) is not str for item in source_languages
+    ):
+        raise LegacyRosterPublicationError(
+            f"reviewed creature languages are invalid: {entity_id}"
+        )
+    if type(portrait_refs) is not tuple or len(portrait_refs) != 2:
+        raise LegacyRosterPublicationError(
+            f"reviewed creature portrait closure is invalid: {entity_id}"
+        )
+    source_selection = authority.validate_selection(
+        authority.resolve(
+            authority.address(
+                source_id=PF2ER_LEGACY_ROSTER_SOURCE_ID,
+                locator=source_locator,
+            )
+        )
+    )
     definition = base_entity.definition
-    definition["presentation"] = {"iconAssetId": portrait_ref.asset_id}
+    if "languages" in definition and definition["languages"] != source_languages:
+        raise LegacyRosterPublicationError(
+            f"reviewed creature languages drifted: {entity_id}"
+        )
+    definition["languages"] = source_languages
+    definition["description"] = description
+    definition["presentation"] = {
+        "iconAssetId": portrait_refs[0].asset_id,
+        "viewerAssetId": portrait_refs[1].asset_id,
+    }
+    raw_definition_digest = canonical_digest(
+        {
+            "schema": 1,
+            "baseDefinition": base_entity.definition,
+            "genericDescription": description,
+            "sourceLanguages": source_languages,
+        },
+        "reviewed creature presentation input",
+    )
     projected_definition_digest = canonical_digest(
         definition,
-        "reviewed creature portrait definition",
+        "reviewed creature presentation definition",
     )
     record = SemanticEvidenceRecord.build(
-        evidence_authority_id=REVIEWED_PORTRAIT_EVIDENCE_AUTHORITY_ID,
+        evidence_authority_id=REVIEWED_PRESENTATION_EVIDENCE_AUTHORITY_ID,
         entity_id=entity_id,
         compiler_digest=package.compiler_digest,
-        raw_definition_digest=base_entity.definition_digest,
+        raw_definition_digest=raw_definition_digest,
         projected_definition_digest=projected_definition_digest,
-        projection_id=REVIEWED_PORTRAIT_PROJECTION_ID,
-        projection_version=REVIEWED_PORTRAIT_PROJECTION_VERSION,
-        projection_digest=REVIEWED_PORTRAIT_PROJECTION_DIGEST,
+        projection_id=REVIEWED_PRESENTATION_PROJECTION_ID,
+        projection_version=REVIEWED_PRESENTATION_PROJECTION_VERSION,
+        projection_digest=REVIEWED_PRESENTATION_PROJECTION_DIGEST,
         acquisition_receipt={
             "schema": 1,
-            "kind": "reviewed-semantic-package-portrait-augmentation",
+            "kind": "reviewed-semantic-package-presentation-augmentation",
             "basePackageId": package.package_id,
             "basePackageVersion": package.version,
             "basePackageDigest": package.package_digest,
             "baseSemanticReceiptDigest": (
                 base_entity.receipt.semantic_receipt_digest
             ),
-            "portraitAssetRef": portrait_ref.to_dict(),
+            "currentSelection": source_selection.receipt.as_serialized(),
+            "portraitAssetRefs": [item.to_dict() for item in portrait_refs],
         },
         compiler_receipt={
             "schema": 1,
-            "projection": _REVIEWED_PORTRAIT_PROJECTION_MANIFEST,
+            "projection": _REVIEWED_PRESENTATION_PROJECTION_MANIFEST,
             "mechanicsPreservedFromDefinitionDigest": (
                 base_entity.definition_digest
             ),
+            "genericDescriptionDigest": canonical_digest(
+                description,
+                "reviewed creature generic description",
+            ),
+            "sourceLanguages": source_languages,
         },
     )
     augmented_entity = build_semantic_entity(
         entity_id=entity_id,
         entity_kind=base_entity.entity_kind,
         definition=definition,
-        evidence_authority_id=REVIEWED_PORTRAIT_EVIDENCE_AUTHORITY_ID,
+        evidence_authority_id=REVIEWED_PRESENTATION_EVIDENCE_AUTHORITY_ID,
         evidence_record_digest=record.evidence_record_digest,
         compiler_digest=package.compiler_digest,
-        raw_definition_digest=base_entity.definition_digest,
-        projection_id=REVIEWED_PORTRAIT_PROJECTION_ID,
-        projection_version=REVIEWED_PORTRAIT_PROJECTION_VERSION,
-        projection_digest=REVIEWED_PORTRAIT_PROJECTION_DIGEST,
+        raw_definition_digest=raw_definition_digest,
+        projection_id=REVIEWED_PRESENTATION_PROJECTION_ID,
+        projection_version=REVIEWED_PRESENTATION_PROJECTION_VERSION,
+        projection_digest=REVIEWED_PRESENTATION_PROJECTION_DIGEST,
         required_capabilities=base_entity.required_capabilities,
-        asset_refs=tuple((*base_entity.asset_refs, portrait_ref)),
+        asset_refs=portrait_refs,
     )
     entities = tuple(
         augmented_entity if entity.entity_id == entity_id else entity
         for entity in package.entities
     )
-    semantic_generation = f"{package.semantic_generation}-roster-portrait-1"
+    semantic_generation = f"{package.semantic_generation}-roster-presentation-2"
     semantic_generation_digest = canonical_digest(
         {
             "schema": 1,
@@ -309,13 +379,17 @@ def _augment_reviewed_portrait(
             "basePackageDigest": package.package_digest,
             "entityId": entity_id,
             "projectedDefinitionDigest": projected_definition_digest,
-            "portraitAssetRef": portrait_ref.to_dict(),
+            "genericDescriptionDigest": canonical_digest(
+                description,
+                "reviewed creature generic description",
+            ),
+            "portraitAssetRefs": [item.to_dict() for item in portrait_refs],
         },
-        "reviewed creature portrait semantic generation",
+        "reviewed creature presentation semantic generation",
     )
     augmented_package = build_semantic_package(
         package_id=package.package_id,
-        version="1.1.0",
+        version="1.2.0",
         ruleset_id=package.ruleset_id,
         ruleset_digest=package.ruleset_digest,
         book_id=package.book_id,
@@ -544,10 +618,14 @@ def _binding_artifacts(
         "newPersistenceOnlyEntityCount": len(PF2ER_LEGACY_ROSTER_TARGETS),
         "reviewedRosterEntityCount": len(REVIEWED_BINDINGS),
         "rosterPortraitCount": len(portrait_manifest["portraits"]),
-        "rosterPortraitTier": portrait_manifest["tier"],
-        "rosterPortraitBytes": sum(
-            item["size"] for item in portrait_manifest["portraits"]
-        ),
+        "rosterPortraitTiers": portrait_manifest["tiers"],
+        "rosterPortraitBytes": {
+            role: sum(
+                item[role]["size"]
+                for item in portrait_manifest["portraits"]
+            )
+            for role in ("thumbnail", "viewer")
+        },
         "rosterPortraitManifestDigest": ROSTER_PORTRAIT_MANIFEST_DIGEST,
         "privateSourceReconnections": [
             {
@@ -562,11 +640,12 @@ def _binding_artifacts(
         "omissions": [],
         "materializedAssetRefs": [
             {
-                "assetId": item["assetId"],
-                "assetDigest": item["assetDigest"],
-                "size": item["size"],
+                "assetId": item[role]["assetId"],
+                "assetDigest": item[role]["assetDigest"],
+                "size": item[role]["size"],
             }
             for item in portrait_manifest["portraits"]
+            for role in ("thumbnail", "viewer")
         ],
         "packageDigests": [
             {
@@ -589,7 +668,7 @@ def main() -> int:
     parser.add_argument("--cache-db", type=Path, required=True)
     parser.add_argument("--legacy-world-db", type=Path, required=True)
     parser.add_argument("--base-package-dir", type=Path, required=True)
-    parser.add_argument("--portrait-dir", type=Path, required=True)
+    parser.add_argument("--portrait-root", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
 
@@ -605,7 +684,7 @@ def main() -> int:
 
     base_packages = _load_base_packages(args.base_package_dir)
     portrait_refs, portrait_artifacts, portrait_manifest = (
-        _portrait_inventory(args.portrait_dir)
+        _portrait_inventory(args.portrait_root)
     )
     store = SourceAuthorityStore.from_path(args.cache_db)
     authority = store.adapter_for(("core-gmc", "core-mc1", "core-pc1"))
@@ -632,10 +711,24 @@ def main() -> int:
             )
         if matching_entity_ids:
             entity_id = matching_entity_ids[0]
-            package = _augment_reviewed_portrait(
+            source_locator = REVIEWED_SOURCE_LOCATORS[entity_id]
+            source_definition = compiler_set.compile_source_creature(
+                authority,
+                PF2ER_LEGACY_ROSTER_SOURCE_ID,
+                source_locator,
+            )
+            package = _augment_reviewed_presentation(
                 package,
+                authority=authority,
                 entity_id=entity_id,
-                portrait_ref=portrait_refs[entity_id],
+                source_locator=source_locator,
+                description=source_creature_description(
+                    authority,
+                    PF2ER_LEGACY_ROSTER_SOURCE_ID,
+                    source_locator,
+                ),
+                source_languages=source_definition["languages"],
+                portrait_refs=portrait_refs[entity_id],
                 evidence_store=evidence_store,
             )
         augmented_base_packages.append(package)
@@ -649,11 +742,31 @@ def main() -> int:
             for target in PF2ER_LEGACY_ROSTER_TARGETS
         },
     )
+    xulgath_entity_id = pf2er_semantic.PF2ER_XULGATH_WARRIOR_ENTITY_ID
+    xulgath_source_definition = compiler_set.compile_source_creature(
+        authority,
+        PF2ER_LEGACY_ROSTER_SOURCE_ID,
+        REVIEWED_SOURCE_LOCATORS[xulgath_entity_id],
+    )
     xulgath_package = _build_xulgath_package(
         authority,
         compiler_set,
         evidence_store,
-        portrait_refs[pf2er_semantic.PF2ER_XULGATH_WARRIOR_ENTITY_ID],
+        portrait_refs[xulgath_entity_id][0],
+    )
+    xulgath_package = _augment_reviewed_presentation(
+        xulgath_package,
+        authority=authority,
+        entity_id=xulgath_entity_id,
+        source_locator=REVIEWED_SOURCE_LOCATORS[xulgath_entity_id],
+        description=source_creature_description(
+            authority,
+            PF2ER_LEGACY_ROSTER_SOURCE_ID,
+            REVIEWED_SOURCE_LOCATORS[xulgath_entity_id],
+        ),
+        source_languages=xulgath_source_definition["languages"],
+        portrait_refs=portrait_refs[xulgath_entity_id],
+        evidence_store=evidence_store,
     )
     packages = (*base_packages, legacy_package, xulgath_package)
     catalog = SemanticCatalogSnapshot.from_selected_packages(packages)
