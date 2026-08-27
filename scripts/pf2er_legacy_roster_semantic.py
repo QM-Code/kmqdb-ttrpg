@@ -1,12 +1,15 @@
-"""Source-free baseline publication for Karmak's legacy PF2ER roster.
+"""Source-free executable publication for Karmak's legacy PF2ER roster.
 
 The roster is review authority for reconnecting the private source selections.
 Every imported creature therefore publishes the compiler's exact ordinary
 combat baseline: identity, statistics, defenses, movement, and source-authored
-strikes.  Advanced abilities, authored equipment, strike riders, and follow-up
-activities remain explicitly deferred until their individual semantic/runtime
-contracts are selected.  A deferred advanced mechanic does not invalidate the
-creature's already imported ordinary combat definition.
+strikes.  The four reviewed legacy spellcasters additionally publish the exact
+source-free subset of their repertoire that the selected Gladiator runtime can
+execute.  Advanced abilities, authored equipment, strike riders, unsupported
+spells, and follow-up activities remain explicitly deferred until their
+individual semantic/runtime contracts are selected.  A deferred advanced
+mechanic does not invalidate the creature's already imported executable
+definition.
 Each entity carries exact generic source prose, one bounded opaque x128
 thumbnail, one opaque x512 viewer portrait, and an exact content-addressed
 offline closure of the existing source-node presentation packet.  It is
@@ -19,6 +22,7 @@ existing reviewed semantic publication lanes own those identities.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass
 import hmac
 from types import MappingProxyType
@@ -37,6 +41,7 @@ from subdomains.ttrpg.semantic_evidence import (
 )
 from subdomains.ttrpg.semantic_packages import (
     AssetRef,
+    CapabilityRequirement,
     SemanticPackage,
     build_semantic_entity,
     build_semantic_package,
@@ -53,9 +58,13 @@ from subdomains.ttrpg.pf2er_semantic import (
 PF2ER_LEGACY_ROSTER_PACKAGE_ID = (
     "ttrpg:pf2er-monster-core-one-legacy-roster"
 )
-PF2ER_LEGACY_ROSTER_PACKAGE_VERSION = "1.4.0"
+PF2ER_LEGACY_ROSTER_PACKAGE_VERSION = "1.5.0"
+PF2ER_LEGACY_ROSTER_PRIOR_PACKAGE_VERSION = "1.4.0"
+PF2ER_LEGACY_ROSTER_PRIOR_PACKAGE_DIGEST = (
+    "cc4a7b0e184d8e860216e8cc93aef554c85db74dc56e29fe6a5dbda3a715078d"
+)
 PF2ER_LEGACY_ROSTER_SEMANTIC_GENERATION = (
-    "ttrpg:pf2er-monster-core-one-legacy-roster-publication-5"
+    "ttrpg:pf2er-monster-core-one-legacy-roster-publication-6"
 )
 PF2ER_LEGACY_ROSTER_EVIDENCE_AUTHORITY_ID = (
     "ttrpg:pf2er-legacy-roster-semantic-evidence"
@@ -63,7 +72,7 @@ PF2ER_LEGACY_ROSTER_EVIDENCE_AUTHORITY_ID = (
 PF2ER_LEGACY_ROSTER_PROJECTION_ID = (
     "ttrpg:pf2er-legacy-roster-persistence-definition"
 )
-PF2ER_LEGACY_ROSTER_PROJECTION_VERSION = "5.0.0"
+PF2ER_LEGACY_ROSTER_PROJECTION_VERSION = "6.0.0"
 PF2ER_LEGACY_ROSTER_SOURCE_ID = "core-mc1"
 PF2ER_LEGACY_ROSTER_THUMBNAIL_TIER = "x128"
 PF2ER_LEGACY_ROSTER_VIEWER_TIER = "x512"
@@ -78,6 +87,10 @@ PF2ER_LEGACY_ROSTER_BOOK_DIGEST = (
 )
 PF2ER_LEGACY_ROSTER_RUNTIME_BLOCKER = (
     "semantic-publication:plague-zombie-runtime-package-not-selected"
+)
+PF2ER_LEGACY_ROSTER_SUMMON_INSTRUMENT_CAPABILITY = CapabilityRequirement(
+    "gladiator:pf2er-summon-instrument-lifecycle",
+    "1.0.0",
 )
 
 _EXPECTED_AUTHORITY_SCOPE = ("core-gmc", "core-mc1", "core-pc1")
@@ -95,15 +108,75 @@ _DEFENSE_MARKERS = MappingProxyType(
         "resistances": "legacy-roster:defense-resistances-unpublished",
     }
 )
+_EXECUTABLE_SPELLCASTING_TARGETS = MappingProxyType(
+    {
+        "pf2er:gnome-bard": (
+            "pf2er:gnome-bard-spellcasting-v1",
+            ("courageous-anthem", "summon-instrument"),
+        ),
+        "pf2er:goblin-pyro": (
+            "pf2er:goblin-pyro-spellcasting-v1",
+            (
+                "breathe-fire",
+                "grease",
+                "ignition",
+                "light",
+                "tangle-vine",
+                "telekinetic-hand",
+            ),
+        ),
+        "pf2er:goblin-war-chanter": (
+            "pf2er:goblin-war-chanter-spellcasting-v1",
+            (
+                "bless",
+                "soothe",
+                "courageous-anthem",
+                "telekinetic-hand",
+                "telekinetic-projectile",
+            ),
+        ),
+        "pf2er:kobold-cavern-mage": (
+            "pf2er:kobold-cavern-mage-spellcasting-v1",
+            (
+                "fleet-step",
+                "heal",
+                "pummeling-rubble",
+                "runic-weapon",
+                "caustic-blast",
+                "tangle-vine",
+            ),
+        ),
+    }
+)
+_EXECUTABLE_SPELLCASTING_CAPABILITIES = MappingProxyType(
+    {
+        entity_id: (
+            *(
+                (PF2ER_LEGACY_ROSTER_SUMMON_INSTRUMENT_CAPABILITY,)
+                if "summon-instrument" in spell_ids
+                else ()
+            ),
+        )
+        for entity_id, (_profile_id, spell_ids) in (
+            _EXECUTABLE_SPELLCASTING_TARGETS.items()
+        )
+    }
+)
 _PROJECTION_MANIFEST = {
     "schema": 1,
     "packageId": PF2ER_LEGACY_ROSTER_PACKAGE_ID,
     "packageVersion": PF2ER_LEGACY_ROSTER_PACKAGE_VERSION,
     "projectionId": PF2ER_LEGACY_ROSTER_PROJECTION_ID,
     "projectionVersion": PF2ER_LEGACY_ROSTER_PROJECTION_VERSION,
-    "definitionSchema": 2,
+    "definitionSchema": 3,
     "entityKind": "ttrpg:creature",
-    "executionPolicy": "baseline-strikes-advanced-mechanics-deferred",
+    "executionPolicy": (
+        "baseline-strikes-reviewed-spellcasting-advanced-mechanics-deferred"
+    ),
+    "spellcastingPolicy": {
+        "kind": "source-free-runtime-profile-v2",
+        "selectedEntityIds": sorted(_EXECUTABLE_SPELLCASTING_TARGETS),
+    },
     "presentationPolicy": {
         "kind": "opaque-portraits-and-exact-source-node-view",
         "thumbnailTier": PF2ER_LEGACY_ROSTER_THUMBNAIL_TIER,
@@ -170,6 +243,98 @@ def pf2er_roster_portrait_asset_id(entity_id: str, tier: str) -> str:
             "roster portrait tier is not published"
         )
     return f"ttrpg:{local_id}-icon-{tier}"
+
+
+def legacy_roster_presentation_bindings(
+    prior_package: SemanticPackage,
+) -> tuple[
+    dict[str, tuple[AssetRef, AssetRef]],
+    dict[str, RosterSourcePresentation],
+]:
+    """Rebind the exact immutable presentation closure from publication 1.4."""
+
+    if (
+        not isinstance(prior_package, SemanticPackage)
+        or prior_package.package_id != PF2ER_LEGACY_ROSTER_PACKAGE_ID
+        or prior_package.version != PF2ER_LEGACY_ROSTER_PRIOR_PACKAGE_VERSION
+        or not hmac.compare_digest(
+            prior_package.package_digest,
+            PF2ER_LEGACY_ROSTER_PRIOR_PACKAGE_DIGEST,
+        )
+        or len(prior_package.entities) != len(PF2ER_LEGACY_ROSTER_TARGETS)
+        or {entity.entity_id for entity in prior_package.entities}
+        != {target.entity_id for target in PF2ER_LEGACY_ROSTER_TARGETS}
+    ):
+        raise PF2ERLegacyRosterSemanticError(
+            "legacy roster prior presentation package is not exact"
+        )
+
+    portrait_refs: dict[str, tuple[AssetRef, AssetRef]] = {}
+    source_presentations: dict[str, RosterSourcePresentation] = {}
+    for target in PF2ER_LEGACY_ROSTER_TARGETS:
+        entity = prior_package.entity(target.entity_id)
+        presentation = entity.definition.get("presentation")
+        if type(presentation) is not dict or set(presentation) != {
+            "iconAssetId",
+            "viewerAssetId",
+            "sourceNodeView",
+        }:
+            raise PF2ERLegacyRosterSemanticError(
+                f"legacy roster prior presentation is invalid: {target.entity_id}"
+            )
+        references = {reference.asset_id: reference for reference in entity.asset_refs}
+        source_view = presentation["sourceNodeView"]
+        if (
+            len(references) != len(entity.asset_refs)
+            or type(source_view) is not dict
+            or set(source_view) != {
+                "schema",
+                "packetAssetId",
+                "closureManifestAssetId",
+            }
+            or source_view.get("schema") != 1
+        ):
+            raise PF2ERLegacyRosterSemanticError(
+                f"legacy roster prior source view is invalid: {target.entity_id}"
+            )
+        try:
+            icon = references[presentation["iconAssetId"]]
+            viewer = references[presentation["viewerAssetId"]]
+            packet = references[source_view["packetAssetId"]]
+            closure = references[source_view["closureManifestAssetId"]]
+        except (KeyError, TypeError) as exc:
+            raise PF2ERLegacyRosterSemanticError(
+                f"legacy roster prior presentation closure is incomplete: {target.entity_id}"
+            ) from exc
+        portraits = (icon, viewer)
+        if (
+            icon.asset_id
+            != pf2er_roster_portrait_asset_id(
+                target.entity_id,
+                PF2ER_LEGACY_ROSTER_THUMBNAIL_TIER,
+            )
+            or viewer.asset_id
+            != pf2er_roster_portrait_asset_id(
+                target.entity_id,
+                PF2ER_LEGACY_ROSTER_VIEWER_TIER,
+            )
+            or len({icon, viewer, packet, closure}) != 4
+        ):
+            raise PF2ERLegacyRosterSemanticError(
+                f"legacy roster prior presentation identity drifted: {target.entity_id}"
+            )
+        portrait_refs[target.entity_id] = portraits
+        source_presentations[target.entity_id] = RosterSourcePresentation(
+            envelope=deepcopy(source_view),
+            asset_refs=tuple(
+                reference
+                for reference in entity.asset_refs
+                if reference not in portraits
+            ),
+            packet_ref=packet,
+            closure_manifest_ref=closure,
+        )
+    return portrait_refs, source_presentations
 
 
 PF2ER_LEGACY_ROSTER_TARGETS = (
@@ -305,6 +470,46 @@ def _project_damage_component(value: object, label: str) -> dict[str, object]:
     return projected
 
 
+def _project_portable_compiled_effect(value: object) -> dict[str, object]:
+    """Translate runtime effect data across Gladiator's acquisition fence."""
+
+    effect = _object(value, "legacy roster spell compiled effect")
+
+    def project(item: object, path: tuple[str, ...]) -> object:
+        if type(item) is dict:
+            result: dict[str, object] = {}
+            for key, child in item.items():
+                if type(key) is not str:
+                    raise PF2ERLegacyRosterSemanticError(
+                        "legacy roster spell effect has a non-string key"
+                    )
+                if key == "source":
+                    if (
+                        not path
+                        or path[-1] != "duration"
+                        or type(child) is not str
+                        or not child
+                        or "sourceUnit" in item
+                    ):
+                        raise PF2ERLegacyRosterSemanticError(
+                            "legacy roster spell effect contains an "
+                            "untranslatable source field"
+                        )
+                    result["sourceUnit"] = child
+                    continue
+                result[key] = project(child, (*path, key))
+            return result
+        if type(item) is list:
+            return [project(child, path) for child in item]
+        if type(item) in {str, int, bool, type(None)}:
+            return item
+        raise PF2ERLegacyRosterSemanticError(
+            "legacy roster spell effect is not strict JSON data"
+        )
+
+    return _object(project(effect, ()), "legacy roster portable spell effect")
+
+
 def _project_baseline_strike(value: object) -> dict[str, object]:
     """Select one source-free ordinary Strike and omit advanced continuations."""
 
@@ -371,6 +576,190 @@ def _project_baseline_strike(value: object) -> dict[str, object]:
     projected["damage"] = public_damage
     projected["followUps"] = []
     return projected
+
+
+def _project_executable_spellcasting(
+    value: object,
+    target: LegacyRosterTarget,
+) -> dict[str, object]:
+    """Translate one private compiler plan into the public runtime profile."""
+
+    plan = _object(value, "legacy roster spellcasting compilation")
+    if plan.get("schema") != 1 or plan.get("kind") != "pf2er-creature-spellcasting-plan":
+        raise PF2ERLegacyRosterSemanticError(
+            f"legacy roster spellcasting plan is invalid: {target.entity_id}"
+        )
+    try:
+        runtime_profile_id, expected_spell_ids = _EXECUTABLE_SPELLCASTING_TARGETS[
+            target.entity_id
+        ]
+    except KeyError as exc:
+        raise PF2ERLegacyRosterSemanticError(
+            f"legacy roster spellcasting target is not selected: {target.entity_id}"
+        ) from exc
+    activation = _object(
+        plan.get("runtimeActivation"),
+        "legacy roster spellcasting activation",
+    )
+    actual_spell_ids = tuple(
+        _string_list(
+            activation.get("executableSpellIds"),
+            "legacy roster executable spell IDs",
+        )
+    )
+    if actual_spell_ids != expected_spell_ids or len(set(actual_spell_ids)) != len(
+        actual_spell_ids
+    ):
+        raise PF2ERLegacyRosterSemanticError(
+            f"legacy roster executable spell census drifted: {target.entity_id}"
+        )
+    raw_spells = plan.get("spells")
+    if type(raw_spells) is not list:
+        raise PF2ERLegacyRosterSemanticError(
+            f"legacy roster spell repertoire is invalid: {target.entity_id}"
+        )
+    spells_by_id = {
+        spell.get("id"): spell
+        for spell in raw_spells
+        if type(spell) is dict and type(spell.get("id")) is str
+    }
+    if len(spells_by_id) != len(raw_spells) or any(
+        spell_id not in spells_by_id for spell_id in expected_spell_ids
+    ):
+        raise PF2ERLegacyRosterSemanticError(
+            f"legacy roster spell repertoire drifted: {target.entity_id}"
+        )
+    public_spells = []
+    spell_fields = (
+        "id",
+        "name",
+        "rank",
+        "kind",
+        "actionCost",
+        "rawActionCost",
+        "actionVariants",
+        "traits",
+        "traditions",
+        "compiledEffect",
+        "execution",
+    )
+    for spell_id in expected_spell_ids:
+        raw_spell = _object(
+            spells_by_id[spell_id],
+            f"legacy roster spell {spell_id}",
+        )
+        spell = _selected_object(
+            raw_spell,
+            spell_fields,
+            f"legacy roster spell {spell_id}",
+        )
+        if set(spell) != set(spell_fields) or spell.get("execution") != {
+            "executable": True,
+            "status": "active",
+            "runtimeSupported": True,
+            "runtimeDependencies": [],
+        }:
+            raise PF2ERLegacyRosterSemanticError(
+                f"legacy roster spell is not exactly executable: {spell_id}"
+            )
+        spell["compiledEffect"] = _project_portable_compiled_effect(
+            spell["compiledEffect"]
+        )
+        public_spells.append(spell)
+
+    raw_casting = _object(plan.get("casting"), "legacy roster spellcasting record")
+    casting = _selected_object(
+        raw_casting,
+        ("id", "mode", "tradition", "dc", "attack"),
+        "legacy roster spellcasting record",
+    )
+    if set(casting) != {"id", "mode", "tradition", "dc", "attack"}:
+        raise PF2ERLegacyRosterSemanticError(
+            f"legacy roster casting identity is incomplete: {target.entity_id}"
+        )
+
+    if raw_casting.get("mode") == "spontaneous":
+        slots = raw_casting.get("slots", [])
+        if type(slots) is not list:
+            raise PF2ERLegacyRosterSemanticError(
+                f"legacy roster spell slots are invalid: {target.entity_id}"
+            )
+        casting["slots"] = []
+        for raw_slot in slots:
+            slot = _object(raw_slot, "legacy roster spell slot")
+            selected_ids = [
+                spell_id
+                for spell_id in _string_list(
+                    slot.get("spellIds"), "legacy roster spell slot IDs"
+                )
+                if spell_id in expected_spell_ids
+            ]
+            if selected_ids:
+                casting["slots"].append(
+                    {
+                        "rank": slot["rank"],
+                        "maximum": slot["maximum"],
+                        "spellIds": selected_ids,
+                    }
+                )
+    elif raw_casting.get("mode") == "prepared":
+        prepared = raw_casting.get("preparedSpells", [])
+        if type(prepared) is not list:
+            raise PF2ERLegacyRosterSemanticError(
+                f"legacy roster prepared spells are invalid: {target.entity_id}"
+            )
+        casting["preparedSpells"] = [
+            _selected_object(
+                row,
+                ("rank", "spellId", "maximum"),
+                "legacy roster prepared spell",
+            )
+            for row in prepared
+            if type(row) is dict and row.get("spellId") in expected_spell_ids
+        ]
+    else:
+        raise PF2ERLegacyRosterSemanticError(
+            f"legacy roster casting mode is invalid: {target.entity_id}"
+        )
+
+    cantrips = raw_casting.get("cantrips")
+    if type(cantrips) is dict:
+        selected_cantrips = [
+            spell_id
+            for spell_id in _string_list(
+                cantrips.get("spellIds"), "legacy roster cantrip IDs"
+            )
+            if spell_id in expected_spell_ids
+        ]
+        if selected_cantrips:
+            casting["cantrips"] = {
+                "rank": cantrips["rank"],
+                "spellIds": selected_cantrips,
+            }
+
+    selected_casting_ids: set[str] = set()
+    for slot in casting.get("slots", []):
+        selected_casting_ids.update(slot["spellIds"])
+    for row in casting.get("preparedSpells", []):
+        selected_casting_ids.add(row["spellId"])
+    selected_casting_ids.update(casting.get("cantrips", {}).get("spellIds", []))
+    if selected_casting_ids != set(expected_spell_ids):
+        raise PF2ERLegacyRosterSemanticError(
+            f"legacy roster casting resources drifted: {target.entity_id}"
+        )
+
+    return {
+        "schema": 2,
+        "kind": "pf2er-creature-spellcasting-plan",
+        "runtimeProfileId": runtime_profile_id,
+        "supportState": "executable",
+        "runtimeActivation": {
+            "status": "active",
+            "executableSpellIds": list(expected_spell_ids),
+        },
+        "casting": casting,
+        "spells": public_spells,
+    }
 
 
 def _project_persistence_definition(
@@ -451,8 +840,17 @@ def _project_persistence_definition(
         if target.entity_id == "pf2er:plague-zombie"
         else []
     )
+    executable_spellcasting = target.entity_id in _EXECUTABLE_SPELLCASTING_TARGETS
+    raw_spellcasting = raw.get("spellcastingCompilation")
+    if executable_spellcasting and raw_spellcasting is None:
+        raise PF2ERLegacyRosterSemanticError(
+            f"legacy roster selected spellcasting is absent: {target.entity_id}"
+        )
+    if raw_spellcasting is not None and not executable_spellcasting:
+        deferred.add("semantic-publication:spellcasting-profile-deferred")
+
     projected: dict[str, object] = {
-        "schema": 2,
+        "schema": 3,
         "kind": "pf2er-creature",
         "id": target.entity_id,
         "name": target.name,
@@ -511,11 +909,15 @@ def _project_persistence_definition(
         "unsupportedMechanics": [],
         "deferredMechanics": sorted(deferred),
         "publication": {
-            "purpose": "legacy-roster-baseline-execution",
+            "purpose": "legacy-roster-executable-combat",
             "executableDefinition": (
                 "blocked-pending-plague-zombie-runtime"
                 if runtime_blockers
-                else "baseline-strikes"
+                else (
+                    "baseline-strikes-and-reviewed-spellcasting"
+                    if executable_spellcasting
+                    else "baseline-strikes"
+                )
             ),
             "advancedMechanics": "deferred",
             "authoredInventory": "deferred-to-owned-item-state",
@@ -527,6 +929,11 @@ def _project_persistence_definition(
             "sourceNodeView": source_presentation.envelope,
         },
     }
+    if executable_spellcasting:
+        projected["spellcastingCompilation"] = _project_executable_spellcasting(
+            raw_spellcasting,
+            target,
+        )
     for key in ("size",):
         if key in raw:
             projected[key] = raw[key]
@@ -752,6 +1159,12 @@ def build_legacy_roster_semantic_package(
                 projection_id=PF2ER_LEGACY_ROSTER_PROJECTION_ID,
                 projection_version=PF2ER_LEGACY_ROSTER_PROJECTION_VERSION,
                 projection_digest=PF2ER_LEGACY_ROSTER_PROJECTION_DIGEST,
+                required_capabilities=(
+                    _EXECUTABLE_SPELLCASTING_CAPABILITIES.get(
+                        target.entity_id,
+                        (),
+                    )
+                ),
                 asset_refs=tuple(
                     sorted(
                         {
@@ -811,6 +1224,8 @@ __all__ = [
     "PF2ER_LEGACY_ROSTER_BOOK_DIGEST",
     "PF2ER_LEGACY_ROSTER_PACKAGE_ID",
     "PF2ER_LEGACY_ROSTER_PACKAGE_VERSION",
+    "PF2ER_LEGACY_ROSTER_PRIOR_PACKAGE_DIGEST",
+    "PF2ER_LEGACY_ROSTER_PRIOR_PACKAGE_VERSION",
     "PF2ER_LEGACY_ROSTER_THUMBNAIL_TIER",
     "PF2ER_LEGACY_ROSTER_VIEWER_TIER",
     "PF2ER_LEGACY_ROSTER_PROJECTION_DIGEST",
@@ -819,7 +1234,9 @@ __all__ = [
     "PF2ER_LEGACY_ROSTER_RULESET_DIGEST",
     "PF2ER_LEGACY_ROSTER_RUNTIME_BLOCKER",
     "PF2ER_LEGACY_ROSTER_SEMANTIC_GENERATION",
+    "PF2ER_LEGACY_ROSTER_SUMMON_INSTRUMENT_CAPABILITY",
     "PF2ER_LEGACY_ROSTER_TARGETS",
     "build_legacy_roster_semantic_package",
+    "legacy_roster_presentation_bindings",
     "pf2er_roster_portrait_asset_id",
 ]

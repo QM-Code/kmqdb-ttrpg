@@ -63,21 +63,23 @@ The binary cache was initially materialized locally from exact approved
 server. The active cache was subsequently replaced through the authenticated
 Library membership flow and now contains 6,097 approved binary assets with no
 body-null rows. It remains a local cache, not a live object-store mount. The
-portable product gate runs 182 cases with 17 exact cache-dependent skips; the
-complete live-cache gate runs 199 cases with zero skips.
+portable application inventory contains 189 cases with 25 exact
+cache-dependent skips; the complete live-cache inventory contains 206 cases.
 
 The active anonymous semantic repository is catalog digest
-`ab33bae94e289d608544daf50a9220321214c2c18a31a5feefce2ceb463a5d02`.
+`23d280b77e91eacab6e6d169622a865d9113483608fe365428c91f5451c010e6`.
 It contains six packages, 101 entities, and the exact Library-owned
 SourceNodeView v20 presentation for all 94 roster creature identities: 94
 source-node packets, 94 closure manifests, 550 source media assets, five shared
 renderer/CSS/manifest assets, and 188 x128/x512 portraits. The complete
-931-reference closure is 87,575,546 bytes. Ninety reconnected legacy creatures
-publish exact baseline statistics, defenses, movement, and ordinary Strikes;
-advanced abilities and authored equipment remain deferred. Plague Zombie is
-the sole runtime-blocked legacy entity because its mandatory runtime package
-is not selected. The immediately prior `e2454af...42b4` repository remains
-immutable on the retained volume for rollback.
+931-reference closure is 87,575,546 bytes. Legacy-roster package `1.5.0`
+(`5bcd84c0...5133f85`) keeps the exact presentation and baseline Strike closure
+while publishing source-free executable spell plans for Gnome Bard, Goblin
+Pyro, Goblin War Chanter, and Kobold Cavern Mage. Advanced abilities and
+authored equipment remain deferred. Plague Zombie is the sole runtime-blocked
+legacy entity because its mandatory runtime package is not selected. The
+immediately prior `ab33bae9...3a5d02` repository remains immutable on the
+retained volume for rollback.
 
 The 2026-08-26 SourceNodeView v20 refresh used reviewed Library source commit
 `ff3baaf` and atomically activated cache SHA-256
