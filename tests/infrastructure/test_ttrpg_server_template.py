@@ -114,7 +114,7 @@ class TtrpgServerTemplateTests(unittest.TestCase):
             "[Service]\n"
             "Environment=KMQDB_TTRPG_SEMANTIC_REPOSITORY="
             "/var/lib/kmqdb/ttrpg/semantic-repositories/"
-            "23d280b77e91eacab6e6d169622a865d9113483608fe365428c91f5451c010e6\n",
+            "28f5fbbdd1e7a2fbddbedecbf311df6550b704d1e12c2e14c05032d176180ec7\n",
         )
 
     def test_tls_proxy_rejects_unknown_hosts_and_uses_loopback(self) -> None:

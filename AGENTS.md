@@ -157,7 +157,7 @@ shell access; treat the authenticated greeting as a successful verification.
 - Portable retained product gate:
   `PYTHONDONTWRITEBYTECODE=1 python tests/product_gate.py all --quiet`.
 - Full live-cache gate: set `KMQDB_TTRPG_TEST_CACHE_DB` to an absolute cache
-  path and add `--require-live-cache`; this must run 206 tests with zero skips.
+  path and add `--require-live-cache`; this must run 214 tests with zero skips.
 - Application release boundary:
   `PYTHONDONTWRITEBYTECODE=1 python -m unittest -v tests.test_ttrpg_application_wheel`.
 - Semantic contract boundary:

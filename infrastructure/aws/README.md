@@ -63,12 +63,12 @@ The binary cache was initially materialized locally from exact approved
 server. The active cache was subsequently replaced through the authenticated
 Library membership flow and now contains 6,097 approved binary assets with no
 body-null rows. It remains a local cache, not a live object-store mount. The
-portable application inventory contains 189 cases with 25 exact
-cache-dependent skips; the complete live-cache inventory contains 206 cases.
+portable application inventory contains 192 cases with 28 exact
+cache-dependent skips; the complete live-cache inventory contains 209 cases.
 
 The active anonymous semantic repository is catalog digest
-`23d280b77e91eacab6e6d169622a865d9113483608fe365428c91f5451c010e6`.
-It contains six packages, 101 entities, and the exact Library-owned
+`28f5fbbdd1e7a2fbddbedecbf311df6550b704d1e12c2e14c05032d176180ec7`.
+It contains seven packages, 117 entities, and the exact Library-owned
 SourceNodeView v20 presentation for all 94 roster creature identities: 94
 source-node packets, 94 closure manifests, 550 source media assets, five shared
 renderer/CSS/manifest assets, and 188 x128/x512 portraits. The complete
@@ -76,10 +76,12 @@ renderer/CSS/manifest assets, and 188 x128/x512 portraits. The complete
 (`5bcd84c0...5133f85`) keeps the exact presentation and baseline Strike closure
 while publishing source-free executable spell plans for Gnome Bard, Goblin
 Pyro, Goblin War Chanter, and Kobold Cavern Mage. Advanced abilities and
-authored equipment remain deferred. Plague Zombie is the sole runtime-blocked
-legacy entity because its mandatory runtime package is not selected. The
-immediately prior `ab33bae9...3a5d02` repository remains immutable on the
-retained volume for rollback.
+authored equipment remain deferred. The Player Core spell-reference package
+binds the plans' 16 portable runtime spell IDs to source-authenticated public
+names and descriptions. Plague Zombie is the sole runtime-blocked legacy entity
+because its mandatory runtime package is not selected. The immediately prior
+`23d280b7...c010e6` repository remains immutable on the retained volume for
+rollback.
 
 The 2026-08-26 SourceNodeView v20 refresh used reviewed Library source commit
 `ff3baaf` and atomically activated cache SHA-256

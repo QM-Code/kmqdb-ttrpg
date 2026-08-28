@@ -54,8 +54,8 @@ sha256sum dist/application/kmqdb_ttrpg-0.1.0a3-py3-none-any.whl
 The expected application-wheel SHA-256 is
 `e2d97f8e63899bdd8fb19140887efe2099c738de51048a8549149277763f1301`.
 
-The portable product gate runs 182 cases and records 17 exact environmental
-skips for source-cache integration. To run the complete 199-case gate without
+The portable product gate runs 197 cases and records 28 exact environmental
+skips for source-cache integration. To run the complete 214-case gate without
 skips, provide the operational cache explicitly:
 
 ```sh
@@ -269,9 +269,9 @@ the application wheel or add an authenticated catalog route. The resulting
 catalog is served through the existing anonymous, immutable envelope, package,
 and asset APIs.
 
-The current reviewed baseline publication has catalog digest
-`ab33bae94e289d608544daf50a9220321214c2c18a31a5feefce2ceb463a5d02`:
-six packages, 101 entities, and an exact 931-reference presentation closure for
+The current reviewed publication has catalog digest
+`28f5fbbdd1e7a2fbddbedecbf311df6550b704d1e12c2e14c05032d176180ec7`:
+seven packages, 117 entities, and an exact 931-reference presentation closure for
 all 94 roster creature identities. Each creature carries its authenticated
 Library source-node packet and closure manifest, the sealed SourceNodeView v20
 renderer and CSS, source media, action glyphs, and x128/x512 roster portraits.
@@ -283,5 +283,8 @@ exact baseline statistics, defenses, movement, and ordinary Strikes while
 advanced abilities and authored equipment remain explicitly deferred. Plague
 Zombie alone remains runtime-blocked because its mandatory runtime package is
 not selected. Hadrosaurid, Viper, and Xulgath continue to use their reviewed
-executable packages. The private evidence and migration-binding artifacts
-remain operator inputs and are never published by the HTTP service.
+executable packages. Sixteen source-authenticated Player Core spell-reference
+entities bind the portable runtime spell IDs used by the four executable caster
+plans to public names and descriptions without publishing private source
+locators. The private evidence and migration-binding artifacts remain operator
+inputs and are never published by the HTTP service.

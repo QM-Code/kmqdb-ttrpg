@@ -30,6 +30,9 @@ from scripts.pf2er_legacy_roster_semantic import (
     build_legacy_roster_semantic_package,
     pf2er_roster_portrait_asset_id,
 )
+from scripts.pf2er_portable_spell_reference_semantic import (
+    build_portable_spell_reference_semantic_package,
+)
 from scripts.pf2er_roster_source_presentation import (
     RosterSourcePresentation,
     build_roster_source_presentations,
@@ -803,6 +806,12 @@ def main() -> int:
             for target in PF2ER_LEGACY_ROSTER_TARGETS
         },
     )
+    portable_spell_reference_package = (
+        build_portable_spell_reference_semantic_package(
+            authority=authority,
+            evidence_store=evidence_store,
+        )
+    )
     xulgath_entity_id = pf2er_semantic.PF2ER_XULGATH_WARRIOR_ENTITY_ID
     xulgath_source_definition = compiler_set.compile_source_creature(
         authority,
@@ -830,7 +839,12 @@ def main() -> int:
         source_presentation=source_presentations[xulgath_entity_id],
         evidence_store=evidence_store,
     )
-    packages = (*base_packages, legacy_package, xulgath_package)
+    packages = (
+        *base_packages,
+        legacy_package,
+        portable_spell_reference_package,
+        xulgath_package,
+    )
     catalog = SemanticCatalogSnapshot.from_selected_packages(packages)
     rows = _legacy_rows(args.legacy_world_db)
     bindings, audit = _binding_artifacts(
